@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.android.apis.tests"
+    android:versionCode="1"
+    android:versionName="0.0.1-SNAPSHOT" >
+
+    <application >
+        <uses-library android:name="android.test.runner" />
+    </application>
+
+    <instrumentation
+        android:label="Tests for Maven Test Example."
+        android:name="android.test.InstrumentationTestRunner"
+        android:targetPackage="hu.reindeermobile.testexample" />
+
+</manifest>

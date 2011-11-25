@@ -75,13 +75,27 @@
 					<nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
 					<sdk>
 						<platform>8</platform>
-						<path>${env.ANDROID_HOME}</path>
+<!-- 						<path>${env.ANDROID_HOME}</path> -->
 					</sdk>
 					<deleteConflictingFiles>true</deleteConflictingFiles>
 					<undeployBeforeDeploy>true</undeployBeforeDeploy>
 				</configuration>
 				<extensions>true</extensions>
 				<executions>
+					<execution>
+						<id>startEmulator</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>emulator-start</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>alignApk</id>
+						<phase>package</phase>
+						<goals>
+							<goal>zipalign</goal>
+						</goals>
+					</execution>
 					<execution>
 						<id>update-manifest</id>
 						<goals>
@@ -230,7 +244,7 @@
 						</dependencies>
 						<configuration>
 							<proguardVersion>4.4</proguardVersion>
-<!-- 							<proguardInclude>${basedir}/proguard.cfg</proguardInclude> -->
+							<!-- <proguardInclude>${basedir}/proguard.cfg</proguardInclude> -->
 							<maxMemory>256m</maxMemory>
 							<injar>android-classes</injar>
 							<libs>

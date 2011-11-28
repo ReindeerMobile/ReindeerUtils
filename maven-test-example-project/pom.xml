@@ -70,9 +70,9 @@
 							<path>${env.ANDROID_HOME}</path>
 						</sdk>
 						<emulator>
-							<avd>and22</avd><!-- emulator name -->
-							<wait>120000</wait><!-- 2 min -->
-							<options>-no-skin -wipe-data -noaudio -no-window</options>
+							<avd>qvga4</avd><!-- emulator name -->
+							<wait>60000</wait><!-- 2 min -->
+							<options>-no-skin -noaudio -no-window</options>
 						</emulator>
 						<zipalign>
 							<verbose>true</verbose>

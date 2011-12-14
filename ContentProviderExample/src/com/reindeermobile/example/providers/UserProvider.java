@@ -1,6 +1,7 @@
+
 package com.reindeermobile.example.providers;
 
-import java.util.HashMap;
+import com.reindeermobile.example.providers.User.Users;
 
 import android.content.ContentProvider;
 import android.content.ContentUris;
@@ -15,70 +16,76 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.util.Log;
 
-import com.reindeermobile.example.providers.User.Users;
+import java.util.HashMap;
 
 public class UserProvider extends ContentProvider {
-	private static final String LOG_TAG = "userprovider";
+    private static final String LOG_TAG = "userprovider";
 
-	/* ez csak az adatbázis kezeléshez kell */
-	private static final String DATABASE_NAME = "userdb";
-	private static final int DATABASE_VERSION = 1;
+    /* ez csak az adatbázis kezeléshez kell */
+    private static final String DATABASE_NAME = "userdb";
+    private static final int DATABASE_VERSION = 1;
 
-	public static final String PROVIDER_NAME = "com.reindeermobile.example.providers.userprovider";
-    public static final Uri CONTENT_URI = Uri.parse("content://"+ PROVIDER_NAME + "/" + Users.USERS_TABLE_NAME);
-	
-	private static final UriMatcher sUriMatcher;
-	private static HashMap<String, String> usersProjectionMap;
+    public static final String PROVIDER_NAME = "com.reindeermobile.example.providers.userprovider";
+    public static final Uri CONTENT_URI = Uri.parse("content://" + PROVIDER_NAME + "/"
+            + Users.USERS_TABLE_NAME);
 
-	private static class DatabaseHelper extends SQLiteOpenHelper {
-		DatabaseHelper(Context context) {
-			super(context, DATABASE_NAME, null, DATABASE_VERSION);
-		}
+    private static final UriMatcher sUriMatcher;
+    private static HashMap<String, String> usersProjectionMap;
 
-		@Override
-		public void onCreate(SQLiteDatabase db) {
-			Log.d("database", "UserProvider.onCreate: START");
-			db.execSQL("CREATE TABLE " + Users.USERS_TABLE_NAME + " (" + Users.USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + Users.EMAIL + " VARCHAR(255),"
-					+ Users.NAME + "  VARCHAR(255)" + ");");
-			Log.d("database", "UserProvider.onCreate: END");
-		}
+    private static class DatabaseHelper extends SQLiteOpenHelper {
+        DatabaseHelper(Context context) {
+            super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        }
 
-		@Override
-		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			Log.d("database", "UserProvider.onUpgrade: START");
-			Log.w("database", "Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data");
-			db.execSQL("DROP TABLE IF EXISTS " + Users.USERS_TABLE_NAME);
-			onCreate(db);
-			Log.d("database", "UserProvider.onUpgrade: END");
-		}
-	}
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            Log.d("database", "UserProvider.onCreate: START");
+            db.execSQL("CREATE TABLE " + Users.USERS_TABLE_NAME + " (" + Users.USER_ID
+                    + " INTEGER PRIMARY KEY AUTOINCREMENT," + Users.EMAIL + " VARCHAR(255),"
+                    + Users.NAME + "  VARCHAR(255)" + ");");
+            Log.d("database", "UserProvider.onCreate: END");
+        }
 
-	private DatabaseHelper dbHelper;
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            Log.d("database", "UserProvider.onUpgrade: START");
+            Log.w("database", "Upgrading database from version " + oldVersion + " to " + newVersion
+                    + ", which will destroy all old data");
+            db.execSQL("DROP TABLE IF EXISTS " + Users.USERS_TABLE_NAME);
+            onCreate(db);
+            Log.d("database", "UserProvider.onUpgrade: END");
+        }
+    }
 
-	@Override
-	public int delete(Uri uri, String selection, String[] selectionArgs) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    private DatabaseHelper dbHelper;
 
-	@Override
-	public String getType(Uri uri) {
-		Log.d("database", "UserProvider.getType: START");
+    @Override
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public String getType(Uri uri) {
+        Log.d("database", "UserProvider.getType: START");
         switch (sUriMatcher.match(uri)) {
             case Users.USERS:
-                return Users.CONTENT_TYPE; //ez még nem biztos, hogy jóra hivatkozik
+                return Users.CONTENT_TYPE; // ez még nem biztos, hogy jóra
+                                           // hivatkozik
             case Users.USERS_ID:
-                return Users.CONTENT_ITEM_TYPE; //ez még nem biztos, hogy jóra hivatkozik
-
+                return Users.CONTENT_ITEM_TYPE; // ez még nem biztos, hogy jóra
+                                                // hivatkozik
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
-	}
+    }
 
-	@Override
-	public Uri insert(Uri uri, ContentValues argValues) {
-		Log.d("database", "UserProvider.insert: START");
-        if (sUriMatcher.match(uri) != Users.USERS) { throw new IllegalArgumentException("Unknown URI " + uri); }
+    @Override
+    public Uri insert(Uri uri, ContentValues argValues) {
+        Log.d("database", "UserProvider.insert: START");
+        if (sUriMatcher.match(uri) != Users.USERS) {
+            throw new IllegalArgumentException("Unknown URI " + uri);
+        }
 
         ContentValues values;
         if (argValues != null) {
@@ -95,19 +102,20 @@ public class UserProvider extends ContentProvider {
             Log.d("database", "UserProvider.insert: END");
             return userUri;
         }
-        
+
         throw new SQLException("Failed to insert row into " + uri);
-	}
+    }
 
-	@Override
-	public boolean onCreate() {
-		dbHelper = new DatabaseHelper(getContext());
+    @Override
+    public boolean onCreate() {
+        dbHelper = new DatabaseHelper(getContext());
         return true;
-	}
+    }
 
-	@Override
-	public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-		Log.d("database", "UserProvider.query: START");
+    @Override
+    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
+            String sortOrder) {
+        Log.d("database", "UserProvider.query: START");
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 
         switch (sUriMatcher.match(uri)) {
@@ -126,23 +134,23 @@ public class UserProvider extends ContentProvider {
         c.setNotificationUri(getContext().getContentResolver(), uri);
         Log.d("database", "UserProvider.query: END");
         return c;
-	}
+    }
 
-	@Override
-	public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	static {
-		sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-		sUriMatcher.addURI(PROVIDER_NAME, Users.USERS_TABLE_NAME, Users.USERS);
-		sUriMatcher.addURI(PROVIDER_NAME, Users.USERS_TABLE_NAME + "/#",Users.USERS_ID);
+    static {
+        sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+        sUriMatcher.addURI(PROVIDER_NAME, Users.USERS_TABLE_NAME, Users.USERS);
+        sUriMatcher.addURI(PROVIDER_NAME, Users.USERS_TABLE_NAME + "/#", Users.USERS_ID);
 
-		usersProjectionMap = new HashMap<String, String>();
-		usersProjectionMap.put(Users.USER_ID, Users.USER_ID);
-		usersProjectionMap.put(Users.EMAIL, Users.EMAIL);
-		usersProjectionMap.put(Users.NAME, Users.NAME);
-	}
+        usersProjectionMap = new HashMap<String, String>();
+        usersProjectionMap.put(Users.USER_ID, Users.USER_ID);
+        usersProjectionMap.put(Users.EMAIL, Users.EMAIL);
+        usersProjectionMap.put(Users.NAME, Users.NAME);
+    }
 
 }

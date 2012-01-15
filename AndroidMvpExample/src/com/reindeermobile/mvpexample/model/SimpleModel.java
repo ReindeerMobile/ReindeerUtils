@@ -13,7 +13,7 @@ public class SimpleModel implements IModel {
     private String text;
 
     @Override
-    public boolean handleMessage(Message msg) {
+    public boolean handleMessage(final Message msg) {
         Log.d("model", "SimpleModel.handleMessage: START");
         switch (msg.what) {
             case MessageConstans.V_UPDATE_TEXT:
@@ -31,7 +31,7 @@ public class SimpleModel implements IModel {
     }
 
     @Override
-    public void init(Context context) {
+    public void init(final Context context) {
         this.text = "";
     }
 

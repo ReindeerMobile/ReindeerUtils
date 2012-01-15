@@ -26,14 +26,14 @@ public class Tab3Activity extends Activity implements Callback, OnClickListener 
     private List<Result> placeResultList;
 
     @Override
-    public boolean handleMessage(Message msg) {
+    public boolean handleMessage(final Message msg) {
         Log.d("view", "Tab3Activity.handleMessage: START");
         switch (msg.what) {
             case MessageConstans.M_REFRESH_PLACES:
                 Log.d("view", "Tab3Activity.handleMessage: M_REFRESH_PLACES");
                 if (msg.obj != null && msg.obj instanceof ResultList) {
                     this.placeResultList = ((ResultList) msg.obj).getResultList();
-                    updateList();
+                    this.updateList();
                 }
                 break;
             default:
@@ -44,7 +44,7 @@ public class Tab3Activity extends Activity implements Callback, OnClickListener 
     }
 
     @Override
-    public void onClick(View v) {
+    public void onClick(final View v) {
         if (v != null) {
             switch (v.getId()) {
                 case R.id.buttonRefresh:
@@ -58,14 +58,14 @@ public class Tab3Activity extends Activity implements Callback, OnClickListener 
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_tab3);
+        this.setContentView(R.layout.activity_tab3);
 
         Presenter.getInst().subscribe(this);
 
-        this.placesListView = (ListView) findViewById(R.id.listviewNearestPlaces);
-        this.refreshButton = (Button) findViewById(R.id.buttonRefresh);
+        this.placesListView = (ListView) this.findViewById(R.id.listviewNearestPlaces);
+        this.refreshButton = (Button) this.findViewById(R.id.buttonRefresh);
 
         this.refreshButton.setOnClickListener(this);
 
@@ -82,8 +82,8 @@ public class Tab3Activity extends Activity implements Callback, OnClickListener 
 
     private void updateList() {
         Log.d("view", this.placeResultList.toString());
-        PlacesListAdapter placesListAdapter = new PlacesListAdapter(this,
-                R.id.listviewNearestPlaces, placeResultList);
+        final PlacesListAdapter placesListAdapter = new PlacesListAdapter(this,
+                R.id.listviewNearestPlaces, this.placeResultList);
         this.placesListView.setAdapter(placesListAdapter);
     }
 }

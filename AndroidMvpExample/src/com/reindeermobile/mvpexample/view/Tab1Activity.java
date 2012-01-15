@@ -20,7 +20,7 @@ public class Tab1Activity extends Activity implements Callback, OnClickListener 
     private Button button;
 
     @Override
-    public boolean handleMessage(Message msg) {
+    public boolean handleMessage(final Message msg) {
         Log.d("view", "Tab1Activity.handleMessage: START");
         switch (msg.what) {
             case MessageConstans.M_UPDATE_TEXT:
@@ -37,7 +37,7 @@ public class Tab1Activity extends Activity implements Callback, OnClickListener 
     }
 
     @Override
-    public void onClick(View v) {
+    public void onClick(final View v) {
         if (v != null) {
             Log.d("view", "Tab1Activity.onClick: START");
             switch (v.getId()) {
@@ -53,16 +53,16 @@ public class Tab1Activity extends Activity implements Callback, OnClickListener 
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d("view", "Tab1Activity.onCreate: START");
-        setContentView(R.layout.tab1activity);
+        this.setContentView(R.layout.activity_tab1);
 
         Presenter.getInst().subscribe(this);
 
-        this.textView = (TextView) findViewById(R.id.editText1);
+        this.textView = (TextView) this.findViewById(R.id.editText1);
 
-        this.button = (Button) findViewById(R.id.button1);
+        this.button = (Button) this.findViewById(R.id.button1);
         this.button.setOnClickListener(this);
         Log.d("view", "Tab1Activity.onCreate: END");
     }

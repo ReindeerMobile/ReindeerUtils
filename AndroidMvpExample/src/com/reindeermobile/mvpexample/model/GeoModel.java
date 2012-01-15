@@ -12,9 +12,7 @@ import com.reindeermobile.mvpexample.mvp.IModel;
 import com.reindeermobile.mvpexample.mvp.MessageConstans;
 import com.reindeermobile.mvpexample.mvp.Presenter;
 
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -23,8 +21,6 @@ import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,11 +39,11 @@ public class GeoModel implements IModel {
     private static final String PLACES_GET = "/maps/api/place/search/json";
 
     private Location location;
-    private PendingIntent pendingIntent;
+    // private PendingIntent pendingIntent;
     private LocationManager locationManager;
     private Context context;
     private Criteria criteria;
-    private List<Result> placeResultList;
+    // private List<Result> placeResultList;
 
     private AsyncHttpClient httpClient;
     private AsyncHttpResponseHandler responseHandler;
@@ -67,36 +63,37 @@ public class GeoModel implements IModel {
         }
 
         @Override
-        protected void handleSuccessMessage(String responseBody) {
+        protected void handleSuccessMessage(final String responseBody) {
             super.handleSuccessMessage(responseBody);
             Log.d(LOG_TAG_MODEL, "PlacesResponseHandler.handleSuccessMessage: START");
             Log.d(LOG_TAG_MODEL, "PlacesResponseHandler.handleSuccessMessage: " + responseBody);
         }
 
         @Override
-        protected void handleFailureMessage(Throwable e, String responseBody) {
+        protected void handleFailureMessage(final Throwable e, final String responseBody) {
             super.handleFailureMessage(e, responseBody);
             Log.d(LOG_TAG_MODEL, "PlacesResponseHandler.handleFailureMessage: START");
             Log.d(LOG_TAG_MODEL, "PlacesResponseHandler.handleSuccessMessage: " + responseBody);
         }
 
         @Override
-        protected void handleMessage(Message msg) {
+        protected void handleMessage(final Message msg) {
             super.handleMessage(msg);
             Log.d(LOG_TAG_MODEL, "PlacesResponseHandler.handleMessage: START" + msg.what);
         }
 
         @Override
-        public void onSuccess(String content) {
+        public void onSuccess(final String content) {
             super.onSuccess(content);
             Log.d(LOG_TAG_MODEL, "PlacesResponseHandler.onSuccess: START");
-            Gson gson = new Gson();
-            PlacesResponse placeResponse = gson.fromJson(content, PlacesResponse.class);
-            List<Result> results = placeResponse.results;
+            final Gson gson = new Gson();
+            final PlacesResponse placeResponse = gson.fromJson(content, PlacesResponse.class);
+            final List<Result> results = placeResponse.results;
 
             if (results != null) {
                 Log.d(LOG_TAG_MODEL, "PlacesResponseHandler.onSuccess: SUCCESS");
-                GeoModel.this.placeResultList = new ArrayList<Result>(results);
+                // GeoModel.this.placeResultList = new
+                // ArrayList<Result>(results);
                 Presenter.getInst().sendViewMessage(MessageConstans.M_REFRESH_PLACES,
                         new ResultList(results));
             }
@@ -105,7 +102,7 @@ public class GeoModel implements IModel {
     }
 
     @Override
-    public boolean handleMessage(Message msg) {
+    public boolean handleMessage(final Message msg) {
         Log.d(LOG_TAG_MODEL, "GeoModel.handleMessage: START");
         switch (msg.what) {
             case MessageConstans.M_LOCATION_CHANGED:
@@ -119,11 +116,11 @@ public class GeoModel implements IModel {
                 break;
             case MessageConstans.M_UPDATE_PLACES:
                 Log.d(LOG_TAG_MODEL, "GeoModel.handleMessage: M_UPDATE_PLACES");
-                refreshPlaceList();
+                this.refreshPlaceList();
                 break;
             case MessageConstans.V_REFRESH_PLACES:
                 Log.d(LOG_TAG_MODEL, "GeoModel.handleMessage: V_REFRESH_PLACES");
-                refreshPlaceList();
+                this.refreshPlaceList();
                 break;
             default:
                 break;
@@ -134,19 +131,19 @@ public class GeoModel implements IModel {
 
     private void refreshPlaceList() {
         if (this.location != null) {
-            Map<String, String> paramMap = new HashMap<String, String>();
+            final Map<String, String> paramMap = new HashMap<String, String>();
             paramMap.put("location",
                     this.location.getLongitude() + "," + this.location.getLatitude());
             paramMap.put("radius", "250");
             paramMap.put("sensor", "false");
             paramMap.put("key", API_ACCESS_TOKEN);
-            RequestParams requestParams = new RequestParams(paramMap);
+            final RequestParams requestParams = new RequestParams(paramMap);
             this.httpClient.get(HOST + PLACES_GET, requestParams, this.responseHandler);
         }
     }
 
     @Override
-    public void init(Context context) {
+    public void init(final Context context) {
         Log.d(LOG_TAG_MODEL, "GeoModel.init: START");
         this.context = context;
 
@@ -156,13 +153,15 @@ public class GeoModel implements IModel {
         this.locationManager = (LocationManager) this.context
                 .getSystemService(Context.LOCATION_SERVICE);
         this.locationManager.requestLocationUpdates(
-                locationManager.getBestProvider(this.criteria, true), 5000, 0, locationListener);
+                this.locationManager.getBestProvider(this.criteria, true), 5000, 0,
+                this.locationListener);
 
-        Intent activeIntent = new Intent(context, LocationReceiver.class);
-        this.pendingIntent = PendingIntent.getBroadcast(context, 0, activeIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+        // Intent activeIntent = new Intent(context, LocationReceiver.class);
+        // this.pendingIntent = PendingIntent.getBroadcast(context, 0,
+        // activeIntent,
+        // PendingIntent.FLAG_UPDATE_CURRENT);
 
-        this.placeResultList = Collections.<Result> emptyList();
+        // this.placeResultList = Collections.<Result> emptyList();
         this.httpClient = new AsyncHttpClient();
         this.responseHandler = new PlacesResponseHandler();
         Log.d(LOG_TAG_MODEL, "GeoModel.init: END");
@@ -170,19 +169,19 @@ public class GeoModel implements IModel {
 
     protected LocationListener locationListener = new LocationListener() {
         @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
+        public void onStatusChanged(final String provider, final int status, final Bundle extras) {
         }
 
         @Override
-        public void onProviderEnabled(String provider) {
+        public void onProviderEnabled(final String provider) {
         }
 
         @Override
-        public void onProviderDisabled(String provider) {
+        public void onProviderDisabled(final String provider) {
         }
 
         @Override
-        public void onLocationChanged(Location location) {
+        public void onLocationChanged(final Location location) {
             Log.d(LOG_TAG_MODEL, "LocationListener.onLocationChanged: START");
             if (location != null) {
                 Presenter.getInst().sendModelMessage(MessageConstans.M_LOCATION_CHANGED, location);

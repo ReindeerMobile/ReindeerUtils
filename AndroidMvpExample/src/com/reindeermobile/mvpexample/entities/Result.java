@@ -41,7 +41,7 @@ public class Result {
         public String toString() {
             return "Geometry [location=" + this.location + "]";
         }
-        
+
     }
 
     public final Geometry getGeometry() {

@@ -14,44 +14,45 @@ import android.widget.TextView;
 import java.util.List;
 
 public class PlacesListAdapter extends ArrayAdapter<Result> {
-    private List<Result> placeResultList;
+    private final List<Result> placeResultList;
     private ViewHolder viewHolder;
 
-    public PlacesListAdapter(Context context, int resource, int textViewResourceId,
-            List<Result> placesResultList) {
+    public PlacesListAdapter(final Context context, final int resource,
+            final int textViewResourceId,
+            final List<Result> placesResultList) {
         super(context, resource, textViewResourceId, placesResultList);
         this.placeResultList = placesResultList;
     }
 
-    public PlacesListAdapter(Context context, int textViewResourceId,
-            List<Result> placesResultList) {
+    public PlacesListAdapter(final Context context, final int textViewResourceId,
+            final List<Result> placesResultList) {
         super(context, textViewResourceId, placesResultList);
         this.placeResultList = placesResultList;
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        Result result = placeResultList.get(position);
-        String name = result.getName();
-        String vicinity = result.getVicinity();
+    public View getView(final int position, View convertView, final ViewGroup parent) {
+        final Result result = this.placeResultList.get(position);
+        final String name = result.getName();
+        final String vicinity = result.getVicinity();
 
         if (convertView == null) {
-            LayoutInflater inflater = (LayoutInflater) getContext()
+            final LayoutInflater inflater = (LayoutInflater) this.getContext()
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
             convertView = inflater.inflate(R.layout.list_item_places, parent, false);
 
-            viewHolder = new ViewHolder();
-            viewHolder.nameTextView = (TextView) convertView
+            this.viewHolder = new ViewHolder();
+            this.viewHolder.nameTextView = (TextView) convertView
                     .findViewById(R.id.textviewListPlacesName);
-            viewHolder.vicinityTextView = (TextView) convertView
+            this.viewHolder.vicinityTextView = (TextView) convertView
                     .findViewById(R.id.textviewListPlacesVicinity);
-            convertView.setTag(viewHolder);
+            convertView.setTag(this.viewHolder);
         } else {
-            viewHolder = (ViewHolder) convertView.getTag();
+            this.viewHolder = (ViewHolder) convertView.getTag();
         }
-        viewHolder.nameTextView.setText(name);
-        viewHolder.vicinityTextView.setText(vicinity);
+        this.viewHolder.nameTextView.setText(name);
+        this.viewHolder.vicinityTextView.setText(vicinity);
         return convertView;
     }
 

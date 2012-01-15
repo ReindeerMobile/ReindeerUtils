@@ -1,3 +1,4 @@
+
 package com.reindeermobile.mvpexample.entities;
 
 import java.util.List;

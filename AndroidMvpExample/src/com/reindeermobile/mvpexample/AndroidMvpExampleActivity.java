@@ -13,12 +13,12 @@ import android.widget.TabHost;
 
 public class AndroidMvpExampleActivity extends TabActivity {
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        this.setContentView(R.layout.main);
 
-        Resources res = getResources();
-        TabHost tabHost = getTabHost();
+        final Resources res = this.getResources();
+        final TabHost tabHost = this.getTabHost();
         TabHost.TabSpec spec;
         Intent intent;
 

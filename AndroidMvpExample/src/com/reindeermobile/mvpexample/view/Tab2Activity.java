@@ -21,7 +21,7 @@ public class Tab2Activity extends Activity implements Callback, OnClickListener 
     private Button refreshButton;
 
     @Override
-    public boolean handleMessage(Message msg) {
+    public boolean handleMessage(final Message msg) {
         Log.d("view", "Tab2Activity.handleMessage: START");
         switch (msg.what) {
             case MessageConstans.M_UPDATE_TEXT:
@@ -33,7 +33,7 @@ public class Tab2Activity extends Activity implements Callback, OnClickListener 
             case MessageConstans.M_LOCATION_UPDATE:
                 Log.d("view", "Tab2Activity.handleMessage: M_LOCATION_UPDATE");
                 if (msg.obj != null && msg.obj instanceof Location) {
-                    Location location = (Location) msg.obj;
+                    final Location location = (Location) msg.obj;
                     this.messageText.setText(location.getLongitude() + ", "
                             + location.getLatitude());
                 }
@@ -46,7 +46,7 @@ public class Tab2Activity extends Activity implements Callback, OnClickListener 
     }
 
     @Override
-    public void onClick(View v) {
+    public void onClick(final View v) {
         if (v != null) {
             Log.d("view", "Tab1Activity.onClick: START");
             switch (v.getId()) {
@@ -59,18 +59,18 @@ public class Tab2Activity extends Activity implements Callback, OnClickListener 
             Log.d("view", "Tab1Activity.onClick: END");
         }
     }
-    
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d("view", "Tab2Activity.onCreate: START");
-        setContentView(R.layout.tab2activity);
+        this.setContentView(R.layout.activity_tab2);
 
         Presenter.getInst().subscribe(this);
 
-        this.messageText = (TextView) findViewById(R.id.textView1);
-        this.refreshButton = (Button) findViewById(R.id.buttonRefresh);
-        
+        this.messageText = (TextView) this.findViewById(R.id.textView1);
+        this.refreshButton = (Button) this.findViewById(R.id.buttonRefresh);
+
         this.refreshButton.setOnClickListener(this);
         Log.d("view", "Tab2Activity.onCreate: END");
     }

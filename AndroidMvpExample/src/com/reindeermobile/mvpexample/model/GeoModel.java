@@ -21,6 +21,8 @@ import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +45,7 @@ public class GeoModel implements IModel {
     private LocationManager locationManager;
     private Context context;
     private Criteria criteria;
-    // private List<Result> placeResultList;
+    private List<Result> placeResultList;
 
     private AsyncHttpClient httpClient;
     private AsyncHttpResponseHandler responseHandler;
@@ -92,8 +94,8 @@ public class GeoModel implements IModel {
 
             if (results != null) {
                 Log.d(LOG_TAG_MODEL, "PlacesResponseHandler.onSuccess: SUCCESS");
-                // GeoModel.this.placeResultList = new
-                // ArrayList<Result>(results);
+                GeoModel.this.placeResultList = new
+                        ArrayList<Result>(results);
                 Presenter.getInst().sendViewMessage(MessageConstans.M_REFRESH_PLACES,
                         new ResultList(results));
             }
@@ -116,7 +118,9 @@ public class GeoModel implements IModel {
                 break;
             case MessageConstans.M_UPDATE_PLACES:
                 Log.d(LOG_TAG_MODEL, "GeoModel.handleMessage: M_UPDATE_PLACES");
-                this.refreshPlaceList();
+                if (this.placeResultList == null) {
+                    this.refreshPlaceList();
+                }
                 break;
             case MessageConstans.V_REFRESH_PLACES:
                 Log.d(LOG_TAG_MODEL, "GeoModel.handleMessage: V_REFRESH_PLACES");
@@ -161,7 +165,7 @@ public class GeoModel implements IModel {
         // activeIntent,
         // PendingIntent.FLAG_UPDATE_CURRENT);
 
-        // this.placeResultList = Collections.<Result> emptyList();
+        this.placeResultList = Collections.<Result> emptyList();
         this.httpClient = new AsyncHttpClient();
         this.responseHandler = new PlacesResponseHandler();
         Log.d(LOG_TAG_MODEL, "GeoModel.init: END");

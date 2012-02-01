@@ -24,7 +24,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
 	public DataBaseHelper(final Context context, final String databaseFileName, final SqlResource sqlResource, final int version) {
 		super(context, databaseFileName, null, version);
-		Log.i(LOG_TAG_DATABASE, "DataBaseHelper()");
+		Log.i(LOG_TAG_DATABASE, "DataBaseHelper(): version: " + version);
 		this.setContext(context);
 		this.setSqlFiles(sqlResource);
 		this.setPackagePath(context.getPackageName());

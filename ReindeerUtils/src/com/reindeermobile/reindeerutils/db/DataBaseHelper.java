@@ -15,52 +15,87 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
-    private static final String LOG_TAG_DATABASE = "database";
+	public static final String TAG = "DataBaseHelper";
 	private static final String DATA_SLASH_DATA_PATH = "/data/data/";
 	private String packagePath;
 	private String databaseFileName;
-	private SqlResource sqlFiles;
+	// private SqlResource sqlFiles;
 	private Context context;
 
-	public DataBaseHelper(final Context context, final String databaseFileName, final SqlResource sqlResource, final int version) {
+	public DataBaseHelper(final Context context, final String databaseFileName,
+			final int version) {
 		super(context, databaseFileName, null, version);
-		Log.i(LOG_TAG_DATABASE, "DataBaseHelper(): version: " + version);
+		Log.i(TAG, "DataBaseHelper - version: " + version);
 		this.setContext(context);
-		this.setSqlFiles(sqlResource);
+		// this.setSqlFiles(sqlResource);
 		this.setPackagePath(context.getPackageName());
 
-		String databaseFullPath = DATA_SLASH_DATA_PATH + getPackagePath() + StringUtils.PER_STRING + databaseFileName;
-		Log.i(LOG_TAG_DATABASE, "Database path: " + databaseFullPath);
+		String databaseFullPath = DATA_SLASH_DATA_PATH + getPackagePath()
+				+ StringUtils.PER_STRING + databaseFileName;
+		Log.i(TAG, "DataBaseHelper - Database path: " + databaseFullPath);
 		this.setDatabaseFileName(databaseFullPath);
 	}
 
+	/**
+	 * A create_<db_version>.sql és az insert_<db_version>.sql fut le.
+	 */
 	@Override
 	public final void onCreate(final SQLiteDatabase db) {
-		Log.i(LOG_TAG_DATABASE, "DataBaseHelper.onCreate - v" + db.getVersion());
-		String sqlFile = this.sqlFiles.getCreateScript();
-		Log.i(LOG_TAG_DATABASE, "DataBaseHelper.onCreate - create tables: " + sqlFile);
+		Log.i(TAG, "onCreate - v" + db.getVersion());
+		// String sqlFile = this.sqlFiles.getCreateScript();
+		String sqlFile = "create_v" + db.getVersion() + ".sql";
+		Log.i(TAG, "onCreate - create tables: "
+				+ sqlFile);
 		loadSqlFile(db, sqlFile);
 
-		sqlFile = this.sqlFiles.getInsertScript();
-		Log.i(LOG_TAG_DATABASE, "DataBaseHelper.onCreate - insert datas: " + sqlFile);
+		// sqlFile = this.sqlFiles.getInsertScript();
+		sqlFile = "insert_v" + db.getVersion() + ".sql";
+		Log.i(TAG, "onCreate - insert datas: "
+				+ sqlFile);
 		loadSqlFile(db, sqlFile);
 	}
 
+	/**
+	 * A oldVersion+1 -től newVersion-ig fut le. drop_<version_iterator>.sql,
+	 * alter_<version_iterator>.sql, insert_<version_iterator>.sql.
+	 * 
+	 * @param oldVersion
+	 * @param newVersion
+	 */
 	@Override
-	public final void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
-		Log.i(LOG_TAG_DATABASE, "DataBaseHelper.onUpgrade - v" + db.getVersion() + "(" + oldVersion + "," + newVersion + ")");
+	public final void onUpgrade(final SQLiteDatabase db, final int oldVersion,
+			final int newVersion) {
+		Log.i(TAG, "onUpgrade - DataBaseHelper.onUpgrade - v" + db.getVersion()
+				+ "(" + oldVersion + "," + newVersion + ")");
 
-		String sqlFile = this.sqlFiles.getDropScript();
-		Log.i(LOG_TAG_DATABASE, "DataBaseHelper.onCreate - drop tables: " + sqlFile);
-		loadSqlFile(db, sqlFile);
-		
-		sqlFile = this.sqlFiles.getAlterScript();
-		Log.i(LOG_TAG_DATABASE, "DataBaseHelper.onCreate - alter tables: " + sqlFile);
-		loadSqlFile(db, sqlFile);
+		for (int i = oldVersion + 1; i < newVersion + 1; i++) {
+			String sqlFile = "drop_v" + newVersion + ".sql";
+			Log.i(TAG, "onUpgrade - drop tables: " + sqlFile);
+			loadSqlFile(db, sqlFile);
 
-		sqlFile = this.sqlFiles.getInsertScript();
-		Log.i(LOG_TAG_DATABASE, "DataBaseHelper.onCreate - insert datas: " + sqlFile);
-		loadSqlFile(db, sqlFile);
+			sqlFile = "alter_v" + newVersion + ".sql";
+			Log.i(TAG, "onUpgrade - alter tables: " + sqlFile);
+			loadSqlFile(db, sqlFile);
+
+			sqlFile = "insert_v" + newVersion + ".sql";
+			Log.i(TAG, "onUpgrade - insert tables: " + sqlFile);
+			loadSqlFile(db, sqlFile);
+		}
+
+		// String sqlFile = this.sqlFiles.getDropScript();
+		// Log.i(LOG_TAG_DATABASE, "DataBaseHelper.onCreate - drop tables: " +
+		// sqlFile);
+		// loadSqlFile(db, sqlFile);
+
+		// sqlFile = this.sqlFiles.getAlterScript();
+		// Log.i(LOG_TAG_DATABASE, "DataBaseHelper.onCreate - alter tables: " +
+		// sqlFile);
+		// loadSqlFile(db, sqlFile);
+		//
+		// sqlFile = this.sqlFiles.getInsertScript();
+		// Log.i(LOG_TAG_DATABASE, "DataBaseHelper.onCreate - insert datas: " +
+		// sqlFile);
+		// loadSqlFile(db, sqlFile);
 	}
 
 	private void loadSqlFile(final SQLiteDatabase db, String sqlFileName) {
@@ -68,32 +103,37 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 		BufferedReader bufferedReader = null;
 		String line = StringUtils.EMPTY_STRING;
 		try {
-			inputStream = ViewUtils.getInputStreamFromAssets(this.getContext(), sqlFileName);
-			bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+			inputStream = ViewUtils.getInputStreamFromAssets(this.getContext(),
+					sqlFileName);
+			bufferedReader = new BufferedReader(new InputStreamReader(
+					inputStream));
 
 			while ((line = bufferedReader.readLine()) != null) {
 				if (line.length() > 0) {
-					Log.d(LOG_TAG_DATABASE, "loadSqlFile: loaded line - " + line);
+					Log.d(TAG, "loadSqlFile - loadSqlFile: loaded line - "
+							+ line);
 					db.execSQL(line);
 				}
 			}
 		} catch (IOException e) {
-			Log.w(LOG_TAG_DATABASE, "IO error during ");
+			Log.w(TAG, "loadSqlFile - IO error during", e);
 		} catch (SQLException e) {
-			Log.w(LOG_TAG_DATABASE, e.getMessage() + "(" + line + ")", e);
+			Log.w(TAG, e.getMessage() + "(" + line + ")", e);
 		} finally {
 			if (bufferedReader != null) {
 				try {
 					bufferedReader.close();
 				} catch (IOException e) {
-					Log.w(LOG_TAG_DATABASE, "Can't close buffered reader: ");
+					Log.w(TAG, "loadSqlFile - Can't close buffered reader: :",
+							e);
 				}
 			}
 			if (inputStream != null) {
 				try {
 					inputStream.close();
 				} catch (IOException e) {
-					Log.w(LOG_TAG_DATABASE, "Can't close buffered reader: ");
+					Log.w(TAG, "loadSqlFile - Can't close buffered reader: :",
+							e);
 				}
 			}
 		}
@@ -115,13 +155,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 		this.packagePath = packagePath;
 	}
 
-	public final SqlResource getSqlFiles() {
-		return sqlFiles;
-	}
-
-	public final void setSqlFiles(final SqlResource sqlFileName) {
-		this.sqlFiles = sqlFileName;
-	}
+	// public final SqlResource getSqlFiles() {
+	// return sqlFiles;
+	// }
+	//
+	// public final void setSqlFiles(final SqlResource sqlFileName) {
+	// this.sqlFiles = sqlFileName;
+	// }
 
 	public final Context getContext() {
 		return context;

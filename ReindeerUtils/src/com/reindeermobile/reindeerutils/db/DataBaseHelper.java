@@ -41,15 +41,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 	 */
 	@Override
 	public final void onCreate(final SQLiteDatabase db) {
-		Log.i(TAG, "onCreate - v" + db.getVersion());
-		// String sqlFile = this.sqlFiles.getCreateScript();
-		String sqlFile = "create_v" + db.getVersion() + ".sql";
+		Log.i(TAG, "onCreate - v1");
+		String sqlFile = "create_v1.sql";
 		Log.i(TAG, "onCreate - create tables: "
 				+ sqlFile);
 		loadSqlFile(db, sqlFile);
 
-		// sqlFile = this.sqlFiles.getInsertScript();
-		sqlFile = "insert_v" + db.getVersion() + ".sql";
+		sqlFile = "insert_v1.sql";
 		Log.i(TAG, "onCreate - insert datas: "
 				+ sqlFile);
 		loadSqlFile(db, sqlFile);

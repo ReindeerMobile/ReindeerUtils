@@ -19,15 +19,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 	private static final String DATA_SLASH_DATA_PATH = "/data/data/";
 	private String packagePath;
 	private String databaseFileName;
-	// private SqlResource sqlFiles;
 	private Context context;
+	private int version;
 
 	public DataBaseHelper(final Context context, final String databaseFileName,
 			final int version) {
 		super(context, databaseFileName, null, version);
+		this.version = version;
+		
 		Log.i(TAG, "DataBaseHelper - version: " + version);
 		this.setContext(context);
-		// this.setSqlFiles(sqlResource);
 		this.setPackagePath(context.getPackageName());
 
 		String databaseFullPath = DATA_SLASH_DATA_PATH + getPackagePath()
@@ -42,20 +43,22 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 	@Override
 	public final void onCreate(final SQLiteDatabase db) {
 		Log.i(TAG, "onCreate - v1");
-		String sqlFile = "create_v1.sql";
-		Log.i(TAG, "onCreate - create tables: "
-				+ sqlFile);
+		int dbVersion = 1;
+		if (this.version > 1) {
+			dbVersion = this.version;
+		}
+		String sqlFile = "create_v" + dbVersion + ".sql";
+		Log.i(TAG, "onCreate - create tables: " + sqlFile);
 		loadSqlFile(db, sqlFile);
 
-		sqlFile = "insert_v1.sql";
-		Log.i(TAG, "onCreate - insert datas: "
-				+ sqlFile);
+		sqlFile = "insert_v" + dbVersion + ".sql";
+		Log.i(TAG, "onCreate - insert datas: " + sqlFile);
 		loadSqlFile(db, sqlFile);
 	}
 
 	/**
 	 * A oldVersion+1 -től newVersion-ig fut le. drop_<version_iterator>.sql,
-	 * alter_<version_iterator>.sql, insert_<version_iterator>.sql.
+	 * alter_<version_iterator>.sql.
 	 * 
 	 * @param oldVersion
 	 * @param newVersion
@@ -74,26 +77,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 			sqlFile = "alter_v" + newVersion + ".sql";
 			Log.i(TAG, "onUpgrade - alter tables: " + sqlFile);
 			loadSqlFile(db, sqlFile);
-
-			sqlFile = "insert_v" + newVersion + ".sql";
-			Log.i(TAG, "onUpgrade - insert tables: " + sqlFile);
-			loadSqlFile(db, sqlFile);
 		}
-
-		// String sqlFile = this.sqlFiles.getDropScript();
-		// Log.i(LOG_TAG_DATABASE, "DataBaseHelper.onCreate - drop tables: " +
-		// sqlFile);
-		// loadSqlFile(db, sqlFile);
-
-		// sqlFile = this.sqlFiles.getAlterScript();
-		// Log.i(LOG_TAG_DATABASE, "DataBaseHelper.onCreate - alter tables: " +
-		// sqlFile);
-		// loadSqlFile(db, sqlFile);
-		//
-		// sqlFile = this.sqlFiles.getInsertScript();
-		// Log.i(LOG_TAG_DATABASE, "DataBaseHelper.onCreate - insert datas: " +
-		// sqlFile);
-		// loadSqlFile(db, sqlFile);
 	}
 
 	private void loadSqlFile(final SQLiteDatabase db, String sqlFileName) {
@@ -152,14 +136,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 	public final void setPackagePath(final String packagePath) {
 		this.packagePath = packagePath;
 	}
-
-	// public final SqlResource getSqlFiles() {
-	// return sqlFiles;
-	// }
-	//
-	// public final void setSqlFiles(final SqlResource sqlFileName) {
-	// this.sqlFiles = sqlFileName;
-	// }
 
 	public final Context getContext() {
 		return context;

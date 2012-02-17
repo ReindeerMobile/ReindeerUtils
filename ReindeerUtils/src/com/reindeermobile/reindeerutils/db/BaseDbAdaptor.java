@@ -9,10 +9,10 @@ public class BaseDbAdaptor {
 
 	public static final String COLUMN_ID = "_id";
 
-	private static final String DROP_TABLES_SQL = "drop_tables.sql";
-	private static final String CREATE_TABLES_SQL = "create_tables.sql";
-	private static final String INSERT_SQL = "insert.sql";
-	private static final String ALTER_SQL = "alter_tables.sql";
+//	private static final String DROP_TABLES_SQL = "drop_tables.sql";
+//	private static final String CREATE_TABLES_SQL = "create_tables.sql";
+//	private static final String INSERT_SQL = "insert.sql";
+//	private static final String ALTER_SQL = "alter_tables.sql";
 	private DataBaseHelper dataBaseHelper;
 
 	// private SQLiteDatabase database;

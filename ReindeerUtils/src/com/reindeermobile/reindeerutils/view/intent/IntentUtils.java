@@ -48,8 +48,15 @@ public class IntentUtils {
 				String methodNamePostfix = field.getName().substring(0, 1)
 						.toUpperCase()
 						+ field.getName().substring(1);
-				String getterMethodName = "get" + methodNamePostfix;
+
+				String getterMethodName = (field.getType() != boolean.class && field
+						.getType() != Boolean.class) ? "get"
+						+ methodNamePostfix : "is" + methodNamePostfix;
 				String setterMethodName = "set" + methodNamePostfix;
+				Log.d(TAG, "putIntentParams - getterMethodName: "
+						+ getterMethodName);
+				Log.d(TAG, "putIntentParams - setterMethodName: "
+						+ setterMethodName);
 
 				try {
 					Method getter = obj.getClass().getMethod(getterMethodName,
@@ -77,34 +84,10 @@ public class IntentUtils {
 			}
 		}
 
-		/*
-		 * Nem kell, mert kötelező a getter-setter az adattaghoz, így elég az
-		 * adattagból kiindulva meghívni a metódusokat.
-		 */
-		/*
-		 * Annotált metódusok feldolgozása
-		 */
-		// Method[] methods = obj.getClass().getMethods();
-		// for (int i = 0; i < methods.length; i++) {
-		// Method method = methods[i];
-		//
-		// String fieldName =
-		//
-		// if (method.isAnnotationPresent(IntentParam.class) &&
-		// method.getName().startsWith("get")) {
-		// IntentParam ann = method.getAnnotation(IntentParam.class);
-		// String name = ann.name();
-		// Object value = getMethodValue(method.getName(), obj);
-		// intent = putIntentParam(intent, name, value,
-		// method.getReturnType());
-		// }
-		//
-		// }
-
 		Log.d(TAG, "putIntentParams - END");
 		return intent;
 	}
-	
+
 	public static <T> T getIntentParams(Intent intent, Class<T> resultClass) {
 		Log.d(TAG, "getIntentParams - START");
 		if (intent == null) {
@@ -113,7 +96,7 @@ public class IntentUtils {
 		if (resultClass == null) {
 			throw new IllegalArgumentException("The resultClass is null!");
 		}
-		
+
 		T result = null;
 		try {
 			result = resultClass.newInstance();
@@ -136,6 +119,7 @@ public class IntentUtils {
 									.substring(0, 1).toUpperCase()
 									+ field.getName().substring(1);
 							String setterMethodName = "set" + methodNamePostfix;
+							Log.d(TAG, "getIntentParams - " + setterMethodName);
 
 							Method setter = resultClass.getMethod(
 									setterMethodName, field.getType());
@@ -143,7 +127,16 @@ public class IntentUtils {
 							Object value = null;
 							if (field.getType() == String.class) {
 								value = bundle.getString(name);
-								setter.invoke(result, value);
+								setter.invoke(result, (String) value);
+							} else if (field.getType() == boolean.class) {
+								value = bundle.getBoolean(name);
+								setter.invoke(result, (Boolean) value);
+							} else if (field.getType() == int.class) {
+								value = bundle.getInt(name);
+								setter.invoke(result, (Integer) value);
+							} else if (field.getType() == Integer.class) {
+								value = bundle.getInt(name);
+								setter.invoke(result, (Integer) value);
 							}
 						}
 					} catch (NoSuchMethodException exception) {
@@ -162,7 +155,7 @@ public class IntentUtils {
 		} catch (InstantiationException exception) {
 			Log.w(TAG, "getMethodValue - ", exception);
 		}
-		
+
 		Log.d(TAG, "getIntentParams - END");
 
 		return result;
@@ -173,9 +166,11 @@ public class IntentUtils {
 		Log.d(TAG, "putIntentParam - START");
 		if (clazz == String.class) {
 			intent.putExtra(name, (String) value);
+		} else if (clazz == int.class) {
+			intent.putExtra(name, (Integer) value);
 		} else if (clazz == Integer.class) {
 			intent.putExtra(name, (Integer) value);
-		} else if (clazz == Boolean.class) {
+		} else if (clazz == boolean.class) {
 			intent.putExtra(name, (Boolean) value);
 		}
 		Log.d(TAG, "putIntentParam - END");

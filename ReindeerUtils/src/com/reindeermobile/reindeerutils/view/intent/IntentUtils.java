@@ -1,15 +1,27 @@
 package com.reindeermobile.reindeerutils.view.intent;
 
+import com.reindeermobile.reindeerutils.view.StringUtils;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class IntentUtils {
 	public static final String TAG = "IntentUtils";
+	
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target({ElementType.FIELD})
+	public @interface IntentParam {
+		String name() default StringUtils.EMPTY_STRING;
+	}
 
 	/**
 	 * A paraméterként kapott objektum {@link IntentParam} annotációval ellátott
@@ -41,7 +53,7 @@ public class IntentUtils {
 				IntentParam ann = field.getAnnotation(IntentParam.class);
 				String name = ann.name();
 
-				if (name == null || name.length() == 0) {
+				if (name.length() == 0) {
 					name = field.getName();
 				}
 
@@ -53,16 +65,16 @@ public class IntentUtils {
 						.getType() != Boolean.class) ? "get"
 						+ methodNamePostfix : "is" + methodNamePostfix;
 				String setterMethodName = "set" + methodNamePostfix;
-				Log.d(TAG, "putIntentParams - getterMethodName: "
-						+ getterMethodName);
-				Log.d(TAG, "putIntentParams - setterMethodName: "
-						+ setterMethodName);
+				// Log.d(TAG, "putIntentParams - getterMethodName: "
+				// + getterMethodName);
+				// Log.d(TAG, "putIntentParams - setterMethodName: "
+				// + setterMethodName);
 
 				try {
 					Method getter = obj.getClass().getMethod(getterMethodName,
 							new Class[] {});
-					@SuppressWarnings("unused")
 					// Test reason only
+					@SuppressWarnings("unused")
 					Method setter = obj.getClass().getMethod(setterMethodName,
 							field.getType());
 
@@ -111,7 +123,7 @@ public class IntentUtils {
 									.getAnnotation(IntentParam.class);
 							String name = intentParam.name();
 
-							if (name == null || name.length() == 0) {
+							if (name.length() == 0) {
 								name = field.getName();
 							}
 
@@ -134,6 +146,9 @@ public class IntentUtils {
 							} else if (field.getType() == int.class) {
 								value = bundle.getInt(name);
 								setter.invoke(result, (Integer) value);
+							} else if (field.getType() == long.class) {
+								value = bundle.getLong(name);
+								setter.invoke(result, (Long) value);
 							} else if (field.getType() == Integer.class) {
 								value = bundle.getInt(name);
 								setter.invoke(result, (Integer) value);
@@ -170,10 +185,15 @@ public class IntentUtils {
 			intent.putExtra(name, (Integer) value);
 		} else if (clazz == Integer.class) {
 			intent.putExtra(name, (Integer) value);
+		} else if (clazz == long.class) {
+			intent.putExtra(name, (Long) value);
+		} else if (clazz == Long.class) {
+			intent.putExtra(name, (Long) value);
 		} else if (clazz == boolean.class) {
 			intent.putExtra(name, (Boolean) value);
 		}
 		Log.d(TAG, "putIntentParam - END");
 		return intent;
 	}
+	
 }

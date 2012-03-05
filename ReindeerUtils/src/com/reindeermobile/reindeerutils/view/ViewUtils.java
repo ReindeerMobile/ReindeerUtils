@@ -24,13 +24,19 @@ public class ViewUtils {
 		return inputStream;
 	}
 
-	private static InputStream loadImageStreamFromAssets(Context context, String imageFile) throws IOException {
+	public static InputStream loadJpgStreamFromAssets(Context context, String imageFile) throws IOException {
 		InputStream inputStream = null;
 		inputStream = context.getAssets().open(imageFile + JPG_EXTENSION);
 		return inputStream;
 	}
+	
+	public static InputStream loadPngStreamFromAssets(Context context, String imageFile) throws IOException {
+		InputStream inputStream = null;
+		inputStream = context.getAssets().open(imageFile + PNG_EXTENSION);
+		return inputStream;
+	}
 
-	private static InputStream loadImageStream(String path) throws FileNotFoundException {
+	public static InputStream loadImageStream(String path) throws FileNotFoundException {
 		InputStream inputStream = null;
 		inputStream = new FileInputStream(path);
 		return inputStream;

@@ -17,16 +17,18 @@ import java.io.InputStreamReader;
 public class DataBaseHelper extends SQLiteOpenHelper {
 	public static final String TAG = "DataBaseHelper";
 	private static final String DATA_SLASH_DATA_PATH = "/data/data/";
+	
 	private String packagePath;
 	private String databaseFileName;
 	private Context context;
+
 	private int version;
 
 	public DataBaseHelper(final Context context, final String databaseFileName,
 			final int version) {
 		super(context, databaseFileName, null, version);
 		this.version = version;
-		
+
 		Log.i(TAG, "DataBaseHelper - version: " + version);
 		this.setContext(context);
 		this.setPackagePath(context.getPackageName());

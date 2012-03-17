@@ -1,6 +1,5 @@
 package com.reindeermobile.reindeerutils.mvp;
 
-
 import dalvik.system.DexFile;
 
 import android.app.Application;
@@ -19,15 +18,15 @@ public class CoreApplication extends Application {
 	public void onCreate() {
 		super.onCreate();
 
-		modelList = new ArrayList<IModel>();
+		this.modelList = new ArrayList<IModel>();
 
-		this.init();
+		this.loadModelClasses();
 
 		// Presenter inicializálása
 		Presenter.initInstance(getApplicationContext(), modelList);
 	}
 
-	private void init() {
+	private void loadModelClasses() {
 		try {
 			ClassLoader loader = getClassLoader();
 			String packageName = getPackageName();

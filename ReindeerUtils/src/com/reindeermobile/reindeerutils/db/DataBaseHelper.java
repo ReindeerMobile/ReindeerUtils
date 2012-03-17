@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,12 +18,12 @@ import java.io.InputStreamReader;
 public class DataBaseHelper extends SQLiteOpenHelper {
 	public static final String TAG = "DataBaseHelper";
 	private static final String DATA_SLASH_DATA_PATH = "/data/data/";
-	
+
 	private String packagePath;
 	private String databaseFileName;
 	private Context context;
 
-	private int version;
+	protected int version;
 
 	public DataBaseHelper(final Context context, final String databaseFileName,
 			final int version) {
@@ -43,7 +44,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 	 * A create_<db_version>.sql és az insert_<db_version>.sql fut le.
 	 */
 	@Override
-	public final void onCreate(final SQLiteDatabase db) {
+	public void onCreate(final SQLiteDatabase db) {
 		Log.i(TAG, "onCreate - v1");
 		int dbVersion = 1;
 		if (this.version > 1) {
@@ -66,7 +67,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 	 * @param newVersion
 	 */
 	@Override
-	public final void onUpgrade(final SQLiteDatabase db, final int oldVersion,
+	public void onUpgrade(final SQLiteDatabase db, final int oldVersion,
 			final int newVersion) {
 		Log.i(TAG, "onUpgrade - DataBaseHelper.onUpgrade - v" + db.getVersion()
 				+ "(" + oldVersion + "," + newVersion + ")");
@@ -82,7 +83,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 		}
 	}
 
-	private void loadSqlFile(final SQLiteDatabase db, String sqlFileName) {
+	protected void loadSqlFile(final SQLiteDatabase db, String sqlFileName) {
+		if (!(new File(sqlFileName).exists())) {
+			Log.w(TAG, "loadSqlFile - File not found: " + sqlFileName);
+			return;
+		}
+
 		InputStream inputStream = null;
 		BufferedReader bufferedReader = null;
 		String line = StringUtils.EMPTY_STRING;

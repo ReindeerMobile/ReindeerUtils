@@ -9,16 +9,15 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import java.lang.annotation.AnnotationFormatError;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +25,11 @@ import java.util.Map.Entry;
 
 public enum DbAdapterFactory {
 	INSTANCE;
+
+	public static final String TAG = "DbAdapterFactory";
+
+	private Map<Class<? extends BaseDbEntity>, DatabaseTable> databaseTableMap;
+	private boolean firstRun = true;
 
 	DbAdapterFactory() {
 	}
@@ -44,10 +48,50 @@ public enum DbAdapterFactory {
 		int textViewId() default -1;
 	}
 
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target({ ElementType.FIELD })
+	public @interface Id {
+	}
+
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target({ ElementType.FIELD })
+	public @interface NotNull {
+	}
+
+	public void init(Class<? extends BaseDbEntity>... classes) {
+		Log.d(TAG, "init - START");
+		this.databaseTableMap = new HashMap<Class<? extends BaseDbEntity>, DatabaseTable>();
+		for (Class<? extends BaseDbEntity> clazz : classes) {
+			DatabaseTable databaseTable = new DatabaseTable(clazz);
+			this.databaseTableMap.put(clazz, databaseTable);
+		}
+	}
+
 	public static <T extends BaseDbEntity> IDatabaseAdapter<T> createInstance(
 			Class<T> clazz, Context context, String databaseName, int dbVersion) {
+
+		if (DbAdapterFactory.INSTANCE.databaseTableMap == null) {
+			throw new NullPointerException(
+					"Null map! Run the DbAdaptorFactory.init() before create an instance.");
+		}
+
+		if (DbAdapterFactory.INSTANCE.firstRun) {
+			DbAdapterFactory.INSTANCE.firstRun = false;
+			MappedDataBaseHelper baseHelper = new MappedDataBaseHelper(context,
+					databaseName, dbVersion,
+					DbAdapterFactory.INSTANCE.databaseTableMap.values());
+
+			SQLiteDatabase database = baseHelper.getWritableDatabase(); // Csak,
+																		// hogy
+																		// az
+			// onCreate/onUpgrade lefusson.
+			// Hack a little bit. :P
+			database.close();
+		}
+
 		return DbAdapterFactory.INSTANCE.new DbAdaptor<T>(clazz, context,
-				databaseName, dbVersion);
+				databaseName, dbVersion,
+				DbAdapterFactory.INSTANCE.databaseTableMap.get(clazz));
 	}
 
 	public class DbAdaptor<T extends BaseDbEntity> extends BaseDbAdaptor
@@ -56,21 +100,11 @@ public enum DbAdapterFactory {
 		private DatabaseTable databaseTable;
 
 		public DbAdaptor(Class<T> clazz, Context context, String databaseName,
-				int dbVersion) {
-			super(context, databaseName, dbVersion);
+				int dbVersion, DatabaseTable databaseTable) {
+			super(new MappedDataBaseHelper(context, databaseName, dbVersion,
+					databaseTable));
 			this.clazz = clazz;
-
-			String tableName = null;
-			if (clazz.isAnnotationPresent(Table.class)) {
-				tableName = (clazz.getAnnotation(Table.class)).name();
-				if (tableName.length() == 0) {
-					tableName = clazz.getName();
-				}
-				this.databaseTable = new DatabaseTable(tableName);
-			} else {
-				throw new AnnotationFormatError("Table annotation missing!");
-			}
-			this.resolveAnnotatedFields(this.clazz, databaseTable);
+			this.databaseTable = databaseTable;
 		}
 
 		@Override
@@ -218,15 +252,13 @@ public enum DbAdapterFactory {
 			}
 		}
 
-		@Override
-		public List<T> list() {
+		public List<T> listWithQuery(String query) {
 			List<T> resultList = null;
 			SQLiteDatabase database = null;
 			Cursor cursor = null;
 			try {
 				database = getDatabase();
 
-				String query = this.buildSelectQuery().toString();
 				Log.d(TAG, "list - query: " + query);
 				cursor = database.rawQuery(query, null);
 
@@ -253,12 +285,25 @@ public enum DbAdapterFactory {
 		}
 
 		@Override
-		public List<T> list(DbAdapterFilter filter) {
+		public List<T> list() {
+			String query = this.buildSelectQuery().toString();
+			return listWithQuery(query);
+		}
+
+		@Override
+		public List<T> list(String rowWhereClause) {
+			String query = this.buildSelectQuery(rowWhereClause).toString();
+			return listWithQuery(query);
+		}
+
+		@Override
+		public List<T> list(DbListFilter filter) {
 			throw new UnsupportedOperationException();
 		}
 
 		// TODO remove warnings
 		// TODO messing logs from catch blocks
+		@SuppressWarnings("unchecked")
 		@Override
 		public List<T> parseCursorToList(Cursor cursor) {
 			List<T> resultList = null;
@@ -270,13 +315,20 @@ public enum DbAdapterFactory {
 				exception1.printStackTrace();
 			}
 
-			if (cursor != null && cursor.moveToFirst()) {
+			if (resultList != null && cursor != null && cursor.moveToFirst()) {
 				do {
 					try {
 						T result = this.clazz.newInstance();
 						for (String columnName : cursor.getColumnNames()) {
-//							Log.d(TAG, "parseCursorToList - columnName: "
-//									+ columnName);
+							// Log.d(TAG, "parseCursorToList - columnName: "
+							// + columnName);
+							//
+							// Log.d(TAG, "parseCursorToList - databaseTable: "
+							// + this.databaseTable);
+							//
+							// Log.d(TAG, "parseCursorToList - column"
+							// + this.databaseTable.getAllColumn().size());
+
 							Type columnType = this.databaseTable.getColumn(
 									columnName).getType();
 							Method setter = this.databaseTable.getColumn(
@@ -357,14 +409,16 @@ public enum DbAdapterFactory {
 		}
 
 		private StringBuilder buildSelectQueryByEntity(long id) {
-			StringBuilder builder = buildSelectQuery();
-			builder = builder.append(" WHERE _id = ").append(id);
-			return builder;
+			return buildSelectQuery("_id=" + id);
 		}
 
 		private StringBuilder buildSelectQueryByEntity(T entity) {
+			return buildSelectQuery("_id=" + entity.getId());
+		}
+
+		private StringBuilder buildSelectQuery(String whereClause) {
 			StringBuilder builder = buildSelectQuery();
-			builder = builder.append(" WHERE _id=").append(entity.getId());
+			builder = builder.append(" WHERE ").append(whereClause);
 			return builder;
 		}
 
@@ -388,129 +442,6 @@ public enum DbAdapterFactory {
 			return values;
 		}
 
-		private DatabaseTable resolveAnnotatedFields(Class<? super T> clazz,
-				DatabaseTable databaseTable) {
-			if (clazz != BaseDbEntity.class) {
-				databaseTable = resolveAnnotatedFields(clazz.getSuperclass(),
-						databaseTable);
-			}
-
-			Field[] fields = clazz.getDeclaredFields();
-			for (int i = 0; i < fields.length; i++) {
-				Field field = fields[i];
-				if (field.isAnnotationPresent(Column.class)) {
-					Column column = field.getAnnotation(Column.class);
-
-					Type columnType = field.getType();
-					String columnName = column.name();
-					if (columnName.length() == 0) {
-						columnName = field.getName();
-					}
-//					Log.d(TAG, "resolveAnnotatedFields - columnName: "
-//							+ columnName);
-
-					String methodNamePostfix = field.getName().substring(0, 1)
-							.toUpperCase()
-							+ field.getName().substring(1);
-					String getterMethodName = (field.getType() != boolean.class && field
-							.getType() != Boolean.class) ? "get"
-							+ methodNamePostfix : "is" + methodNamePostfix;
-					String setterMethodName = "set" + methodNamePostfix;
-
-//					Log.d(TAG, "resolveAnnotatedFields - : " + getterMethodName
-//							+ "," + setterMethodName);
-//
-//					Log.d(TAG,
-//							"resolveAnnotatedFields - clazz: "
-//									+ clazz.getName());
-//					Log.d(TAG, "resolveAnnotatedFields - columnType: "
-//							+ columnType);
-					try {
-						Method setter = clazz.getMethod(setterMethodName,
-								field.getType());
-						Method getter = clazz.getMethod(getterMethodName);
-						DatabaseColumn databaseColumn = new DatabaseColumn(
-								columnName, columnType, setter, getter);
-						databaseTable.addColumn(new DatabaseColumn(columnName,
-								columnType, setter, getter));
-//						Log.d(TAG, "resolveAnnotatedFields - databaseColumn: "
-//								+ databaseColumn);
-					} catch (SecurityException exception) {
-						exception.printStackTrace();
-					} catch (NoSuchMethodException exception) {
-						exception.printStackTrace();
-					}
-				}
-			}
-			Log.i(TAG, "resolveAnnotatedFields - OK - " + clazz);
-			return databaseTable;
-		}
-
-		private class DatabaseTable {
-			private String tableName;
-			private Map<String, DatabaseColumn> columnMap;
-
-			public DatabaseTable(String tableName) {
-				super();
-				this.tableName = tableName;
-				this.columnMap = new HashMap<String, DatabaseColumn>();
-			}
-
-			public String getName() {
-				return this.tableName;
-			}
-
-			public void addColumn(DatabaseColumn column) {
-				this.columnMap.put(column.columnName, column);
-			}
-
-			public DatabaseColumn getColumn(String columnName) {
-				return this.columnMap.get(columnName);
-			}
-
-			public Map<String, DatabaseColumn> getAllColumn() {
-				return this.columnMap;
-			}
-		}
-
-		private class DatabaseColumn {
-			private String columnName;
-			private Type type;
-			private Method setter;
-			private Method getter;
-
-			public DatabaseColumn(String columnName, Type type, Method setter,
-					Method getter) {
-				super();
-				this.columnName = columnName;
-				this.type = type;
-				this.setter = setter;
-				this.getter = getter;
-			}
-
-			public final String getColumnName() {
-				return this.columnName;
-			}
-
-			public final Type getType() {
-				return this.type;
-			}
-
-			public final Method getSetter() {
-				return this.setter;
-			}
-
-			public final Method getGetter() {
-				return this.getter;
-			}
-
-			@Override
-			public String toString() {
-				return "DatabaseColumn [columnName=" + this.columnName
-						+ ", type=" + this.type + ", setter=" + this.setter
-						+ "]";
-			}
-		}
 	}
 
 	private static Object getCursorColumnByType(Cursor cursor,
@@ -529,6 +460,9 @@ public enum DbAdapterFactory {
 		} else if (type == boolean.class) {
 			value = (cursor.getInt(cursor.getColumnIndex(columnName)) > 0) ? true
 					: false;
+		} else if (type == Date.class) {
+			long epoch = (cursor.getLong(cursor.getColumnIndex(columnName)));
+			value = new Date(epoch);
 		}
 		return value;
 	}
@@ -546,6 +480,8 @@ public enum DbAdapterFactory {
 		} else if (object instanceof Double
 				|| object.getClass() == double.class) {
 			return ((Double) object).toString();
+		} else if (object instanceof Date) {
+			return String.valueOf(((Date) object).getTime());
 		} else {
 			return object.toString();
 		}

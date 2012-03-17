@@ -18,8 +18,10 @@ public interface IDatabaseAdapter<T extends BaseDbEntity> {
 	void remove(T entity);
 
 	List<T> list();
+	
+	List<T> list(String rowWhereClause);
 
-	List<T> list(DbAdapterFilter filter);
+	List<T> list(DbListFilter filter);
 
 	List<T> parseCursorToList(Cursor cursor);
 

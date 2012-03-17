@@ -18,6 +18,11 @@ public class BaseDbAdaptor {
 		setDataBaseHelper(new DataBaseHelper(context, databaseName, dbVersion));
 	}
 
+	public BaseDbAdaptor(final DataBaseHelper dataBaseHelper) {
+		super();
+		setDataBaseHelper(dataBaseHelper);
+	}
+
 	public final DataBaseHelper getDataBaseHelper() {
 		return dataBaseHelper;
 	}

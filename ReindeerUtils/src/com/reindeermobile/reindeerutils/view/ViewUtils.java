@@ -9,10 +9,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public class ViewUtils {
-	private static final String JPG_EXTENSION = ".jpg";
+	public static final String JPG_EXTENSION = ".jpg";
 	public static final String PNG_EXTENSION = ".png";
+
+	private static final int DEFAULT_BUFFER = 1024;
 
 	protected ViewUtils() {
 		throw new UnsupportedOperationException("This is a Utility class");
@@ -54,6 +57,16 @@ public class ViewUtils {
 		} else {
 			return null;
 		}
+	}
+	
+	public static void streamCopy(final InputStream inputStream, final OutputStream outputStream) throws IOException {
+		byte[] buffer = new byte[DEFAULT_BUFFER];
+		int length;
+		while ((length = inputStream.read(buffer)) > 0) {
+			outputStream.write(buffer, 0, length);
+		}
+		inputStream.close();
+		outputStream.close();
 	}
 
 }

@@ -13,7 +13,7 @@ public interface IDatabaseAdapter<T extends BaseDbEntity> {
 	
 	T update(T entity);
 	
-	T insertList(List<T> entities);
+	int insertList(List<T> entities);
 
 	void remove(T entity);
 

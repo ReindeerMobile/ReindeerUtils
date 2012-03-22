@@ -15,10 +15,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class DataBaseHelper extends SQLiteOpenHelper {
+public class DataBaseHelper extends AbstractDatabaseHelper {
 	public static final String TAG = "DataBaseHelper";
-	private static final String DATA_SLASH_DATA_PATH = "/data/data/";
-
+	
 	private String packagePath;
 	private String databaseFileName;
 	private Context context;
@@ -27,14 +26,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
 	public DataBaseHelper(final Context context, final String databaseFileName,
 			final int version) {
-		super(context, databaseFileName, null, version);
+		super(context, databaseFileName, version);
 		this.version = version;
 
 		Log.i(TAG, "DataBaseHelper - version: " + version);
 		this.setContext(context);
 		this.setPackagePath(context.getPackageName());
 
-		String databaseFullPath = DATA_SLASH_DATA_PATH + getPackagePath()
+		String databaseFullPath = AbstractDatabaseHelper.DATA_SLASH_DATA_PATH + getPackagePath()
 				+ StringUtils.PER_STRING + databaseFileName;
 		Log.i(TAG, "DataBaseHelper - Database path: " + databaseFullPath);
 		this.setDatabaseFileName(databaseFullPath);
@@ -46,17 +45,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(final SQLiteDatabase db) {
 		Log.i(TAG, "onCreate - v1");
-		int dbVersion = 1;
-		if (this.version > 1) {
-			dbVersion = this.version;
-		}
-		String sqlFile = "create_v" + dbVersion + ".sql";
-		Log.i(TAG, "onCreate - create tables: " + sqlFile);
-		loadSqlFile(db, sqlFile);
-
-		sqlFile = "insert_v" + dbVersion + ".sql";
-		Log.i(TAG, "onCreate - insert datas: " + sqlFile);
-		loadSqlFile(db, sqlFile);
+		this.init(db);
 	}
 
 	/**
@@ -72,22 +61,42 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 		Log.i(TAG, "onUpgrade - DataBaseHelper.onUpgrade - v" + db.getVersion()
 				+ "(" + oldVersion + "," + newVersion + ")");
 
+		this.update(db, oldVersion, newVersion);
+	}
+	
+	@Override
+	protected void init(SQLiteDatabase database) {
+		int dbVersion = 1;
+		if (this.version > 1) {
+			dbVersion = this.version;
+		}
+		String sqlFile = "create_v" + dbVersion + ".sql";
+		Log.i(TAG, "onCreate - create tables: " + sqlFile);
+		loadSqlFile(database, sqlFile);
+
+		sqlFile = "insert_v" + dbVersion + ".sql";
+		Log.i(TAG, "onCreate - insert datas: " + sqlFile);
+		loadSqlFile(database, sqlFile);
+	}
+	
+	@Override
+	protected void update(SQLiteDatabase database, int oldVersion, int newVersion) {
 		for (int i = oldVersion + 1; i < newVersion + 1; i++) {
 			String sqlFile = "drop_v" + newVersion + ".sql";
 			Log.i(TAG, "onUpgrade - drop tables: " + sqlFile);
-			loadSqlFile(db, sqlFile);
+			loadSqlFile(database, sqlFile);
 
 			sqlFile = "alter_v" + newVersion + ".sql";
 			Log.i(TAG, "onUpgrade - alter tables: " + sqlFile);
-			loadSqlFile(db, sqlFile);
+			loadSqlFile(database, sqlFile);
 		}
 	}
 
 	protected void loadSqlFile(final SQLiteDatabase db, String sqlFileName) {
-		if (!(new File(sqlFileName).exists())) {
-			Log.w(TAG, "loadSqlFile - File not found: " + sqlFileName);
-			return;
-		}
+//		if (!(new File(sqlFileName).exists())) {
+//			Log.w(TAG, "loadSqlFile - File not found: " + sqlFileName);
+//			return;
+//		}
 
 		InputStream inputStream = null;
 		BufferedReader bufferedReader = null;

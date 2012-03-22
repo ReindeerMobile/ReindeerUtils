@@ -8,9 +8,10 @@ import java.util.Collection;
 
 public class MappedDataBaseHelper extends DataBaseHelper {
 	public static final String TAG = "MappedDataBaseHelper";
-	private DatabaseTable databaseTable;
-	private Collection<DatabaseTable> databaseTableList;
-	private boolean debugMode = true;
+
+	protected DatabaseTable databaseTable;
+	protected Collection<DatabaseTable> databaseTableList;
+	protected boolean debugMode = true;
 
 	public MappedDataBaseHelper(Context context, String name, int version,
 			DatabaseTable databaseTable) {
@@ -18,44 +19,53 @@ public class MappedDataBaseHelper extends DataBaseHelper {
 		this.databaseTable = databaseTable;
 	}
 
-	public MappedDataBaseHelper(Context context, String name, int version,
+	MappedDataBaseHelper(Context context, String name, int version,
 			Collection<DatabaseTable> databaseTableList) {
 		super(context, name, version);
 		this.databaseTableList = databaseTableList;
 	}
 
 	@Override
-	public final void onCreate(SQLiteDatabase db) {
+	public void onCreate(SQLiteDatabase database) {
 		Log.d(TAG, "onCreate - START");
 		if (this.databaseTableList == null) {
-			db.execSQL(generateCreateQuery(this.databaseTable));
+			database.execSQL(generateCreateQuery(this.databaseTable));
 		} else {
 			for (DatabaseTable databaseTable : this.databaseTableList) {
-				db.execSQL(generateCreateQuery(databaseTable));
+				database.execSQL(generateCreateQuery(databaseTable));
 			}
 		}
+		this.init(database);
+	}
 
+	@Override
+	public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
+		Log.d(TAG, "onUpgrade - START");
+		update(database, oldVersion, newVersion);
+	}
+
+	@Override
+	protected void init(SQLiteDatabase database) {
 		int dbVersion = 1;
 		if (this.version > 1) {
 			dbVersion = this.version;
 		}
 		String sqlFile = "insert_v" + dbVersion + ".sql";
 		Log.i(TAG, "onCreate - insert tables: " + sqlFile);
-		loadSqlFile(db, sqlFile);
+		loadSqlFile(database, sqlFile);
 	}
 
 	@Override
-	public final void onUpgrade(SQLiteDatabase db, int oldVersion,
+	protected void update(SQLiteDatabase database, int oldVersion,
 			int newVersion) {
-		Log.d(TAG, "onUpgrade - START");
-/*		if (debugMode) { // Fejlesztői módban minden frissítéskor reseteli a
-							// táblát.
-			db.execSQL(generateDropQuery(this.databaseTable));
-			db.execSQL(generateCreateQuery(this.databaseTable));
-		}*/
+		/*
+		 * if (debugMode) { // Fejlesztői módban minden frissítéskor reseteli a
+		 * // táblát. db.execSQL(generateDropQuery(this.databaseTable));
+		 * db.execSQL(generateCreateQuery(this.databaseTable)); }
+		 */
 
 		/*
-		 * EZT MÉG NINCS IMPLEMENTÁLVA. Most még csupán 
+		 * EZT MÉG NINCS IMPLEMENTÁLVA. Most még csupán
 		 * 
 		 * Itt elvileg a a kapott verzióig fel kellene frissíteni az adatbázis
 		 * adatait. Fejlesztői módban egy teljesen üres tábla lesz, egyébként
@@ -68,17 +78,19 @@ public class MappedDataBaseHelper extends DataBaseHelper {
 		 * Itt csak INSERT vagy UPDATE query-k lesznek.
 		 */
 
-		Log.i(TAG, "onUpgrade - DataBaseHelper.onUpgrade - v" + db.getVersion()
-				+ "(" + oldVersion + "," + newVersion + ")");
+		Log.i(TAG,
+				"onUpgrade - DataBaseHelper.onUpgrade - v"
+						+ database.getVersion() + "(" + oldVersion + ","
+						+ newVersion + ")");
 
 		for (int i = oldVersion + 1; i < newVersion + 1; i++) {
 			String sqlFile = "insert_v" + newVersion + ".sql";
 			Log.i(TAG, "onUpgrade - insert/update tables: " + sqlFile);
-			loadSqlFile(db, sqlFile);
+			super.loadSqlFile(database, sqlFile);
 		}
 	}
 
-	private String generateCreateQuery(DatabaseTable databaseTable) {
+	protected String generateCreateQuery(DatabaseTable databaseTable) {
 		Log.d(TAG, "generateCreateQuery - START");
 		int columnCount = 0;
 		int maxCount = databaseTable.getAllColumn().size();
@@ -113,7 +125,7 @@ public class MappedDataBaseHelper extends DataBaseHelper {
 		return sb.toString();
 	}
 
-	private String generateDropQuery(DatabaseTable databaseTable) {
+	protected String generateDropQuery(DatabaseTable databaseTable) {
 		Log.d(TAG, "generateDropQuery - START");
 		StringBuilder sb = new StringBuilder("DROP TABLE IF EXISTS "
 				+ databaseTable.getName());

@@ -203,8 +203,17 @@ public enum DbAdapterFactory {
 		}
 
 		@Override
-		public T insertList(List<T> entities) {
-			throw new UnsupportedOperationException();
+		public int insertList(List<T> entities) {
+			Log.d(TAG, "insertList - START");
+			int count = 0;
+			for (T entity : entities) {
+				Log.d(TAG, "insertList - entity: " + entity.toString());
+				T savedEntity = insert(entity);
+				if (savedEntity != null) {
+					count++;
+				}
+			}
+			return count;
 		}
 
 		public T update(T entity) {
@@ -408,20 +417,62 @@ public enum DbAdapterFactory {
 			return stringBuilder;
 		}
 
-		private StringBuilder buildSelectQueryByEntity(long id) {
-			return buildSelectQuery("_id=" + id);
-		}
-
-		private StringBuilder buildSelectQueryByEntity(T entity) {
-			return buildSelectQuery("_id=" + entity.getId());
-		}
-
 		private StringBuilder buildSelectQuery(String whereClause) {
 			StringBuilder builder = buildSelectQuery();
 			builder = builder.append(" WHERE ").append(whereClause);
 			return builder;
 		}
 
+		private StringBuilder buildSelectQueryByEntity(long id) {
+			return buildSelectQuery("_id=" + id);
+		}
+
+		private StringBuilder buildSelectQueryByEntity(T entity) {
+			// return buildSelectQuery("_id=" + entity.getId());
+			return buildSelectQuery(buildWhereClauseByEntity(entity).toString());
+		}
+
+		private StringBuilder buildWhereClauseByEntity(T entity) {
+			StringBuilder builder = new StringBuilder();
+			boolean first = true;
+			for (DatabaseColumn column : this.databaseTable.getAllColumn()
+					.values()) {
+				Object obj = null;
+				try {
+					obj = column.getGetter().invoke(entity, new Object[] {});
+				} catch (IllegalArgumentException exception) {
+					exception.printStackTrace();
+				} catch (IllegalAccessException exception) {
+					exception.printStackTrace();
+				} catch (InvocationTargetException exception) {
+					exception.printStackTrace();
+				}
+				if (obj != null) {
+					if (!first) {
+						builder = builder.append(" AND ");
+					} else {
+						first = false;
+					}
+					builder = builder.append(column.getColumnName())
+							.append("=");
+					String value = DbAdapterFactory.objToString(obj);
+					if (obj instanceof String) {
+						value = "'" + value + "'";
+					}
+					builder = builder.append(value);
+				}
+			}
+			return builder;
+		}
+
+		/**
+		 * A kapott entity-t egy {@link ContentValues} példánnyá alakítja. Ha
+		 * egy adattagja null, akkor azt figyelmen kívűl hagyja vagyis nem kerül
+		 * bele a kimenetbe.
+		 * 
+		 * @param entity
+		 * @return Az entity adattagjait tartalmazó {@link ContentValues}.
+		 */
 		private ContentValues entityToContentValues(T entity) {
 			ContentValues values = new ContentValues();
 			for (Entry<String, DatabaseColumn> entry : this.databaseTable
@@ -429,8 +480,11 @@ public enum DbAdapterFactory {
 				Method getter = entry.getValue().getGetter();
 				try {
 					Object value = getter.invoke(entity, new Object[] {});
-					values.put(entry.getValue().getColumnName(),
-							objToString(value));
+					String valueString = objToString(value);
+					if (valueString != null) {
+						values.put(entry.getValue().getColumnName(),
+								valueString);
+					}
 				} catch (IllegalArgumentException exception) {
 					Log.w(TAG, "insert - IllegalArgumentException" + exception);
 				} catch (IllegalAccessException exception) {
@@ -468,7 +522,9 @@ public enum DbAdapterFactory {
 	}
 
 	private static String objToString(Object object) {
-		if (object instanceof String) {
+		if (object == null) {
+			return null;
+		} else if (object instanceof String) {
 			return (String) object;
 		} else if (object instanceof Long || object.getClass() == long.class) {
 			return ((Long) object).toString();
@@ -476,7 +532,7 @@ public enum DbAdapterFactory {
 			return ((Integer) object).toString();
 		} else if (object instanceof Boolean
 				|| object.getClass() == boolean.class) {
-			return ((Boolean) object).toString();
+			return ((Boolean) object) ? "1" : "0";
 		} else if (object instanceof Double
 				|| object.getClass() == double.class) {
 			return ((Double) object).toString();

@@ -44,8 +44,6 @@ public enum DbAdapterFactory {
 	@Target({ ElementType.FIELD })
 	public @interface Column {
 		String name() default StringUtils.EMPTY_STRING;
-
-		int textViewId() default -1;
 	}
 
 	@Retention(RetentionPolicy.RUNTIME)
@@ -248,14 +246,14 @@ public enum DbAdapterFactory {
 				database.delete(this.databaseTable.getName(), COLUMN_ID + "= "
 						+ entity.getId(), null);
 			} catch (SQLException exception) {
-				Log.w(TAG, "delete - Exception:", exception);
+				Log.w(TAG, "remove - Exception:", exception);
 				throw exception;
 			} finally {
 				if (database != null) {
 					try {
 						database.close();
 					} catch (Exception exception) {
-						Log.w(TAG, "delete - close database:", exception);
+						Log.w(TAG, "remove - close database:", exception);
 					}
 				}
 			}
@@ -268,25 +266,25 @@ public enum DbAdapterFactory {
 			try {
 				database = getDatabase();
 
-				Log.d(TAG, "list - query: " + query);
+				Log.d(TAG, "listWithQuery - query: " + query);
 				cursor = database.rawQuery(query, null);
 
 				resultList = parseCursorToList(cursor);
 			} catch (SQLException exception) {
-				Log.w(TAG, "list - sql exception", exception);
+				Log.w(TAG, "listWithQuery - sql exception", exception);
 			} finally {
 				if (cursor != null) {
 					try {
 						cursor.close();
 					} catch (Exception exception) {
-						Log.w(TAG, "list - cursor close exception");
+						Log.w(TAG, "listWithQuery - cursor close exception");
 					}
 				}
 				if (database != null) {
 					try {
 						database.close();
 					} catch (Exception exception) {
-						Log.w(TAG, "list - database close exception");
+						Log.w(TAG, "listWithQuery - database close exception");
 					}
 				}
 			}
@@ -325,6 +323,7 @@ public enum DbAdapterFactory {
 			}
 
 			if (resultList != null && cursor != null && cursor.moveToFirst()) {
+				Log.d(TAG, "parseCursorToList - HERE");
 				do {
 					try {
 						T result = this.clazz.newInstance();

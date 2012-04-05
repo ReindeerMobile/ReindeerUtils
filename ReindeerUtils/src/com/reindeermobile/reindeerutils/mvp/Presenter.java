@@ -37,76 +37,45 @@ public final class Presenter implements Callback {
 	 * A model szolgáltatás azonosítókhoz rendelt modellek.
 	 */
 	private Map<Integer, Handler> modelServiceMap;
+
+	// TODO resolv back & forth mapping
+	private Map<String, Integer> serviceNameModelIdMap;
+//	private Map<Integer, String> modelIdServiceNameMap;
 	private Context context;
 	private Handler handler;
 	private HandlerThread handlerThread;
 
 	public static final void initInstance(Context context,
-			List<IModel> modelList) {
+			List<IController> modelList) {
 		INSTANCE = new Presenter(context, modelList);
+		
+		Log.i(TAG, "initInstance - init models...");
+		for (IController controller: modelList) {
+			controller.init(context);
+		}
+		Log.i(TAG, "initInstance - OK");
 	}
 
 	public static final Presenter getInst() {
 		return INSTANCE;
 	}
 
-	// @Target({ ElementType.TYPE })
-	// @Retention(RetentionPolicy.RUNTIME)
-	// public @interface ModelPass {
-	// int id() default 0;
-	// }
-
+	@Deprecated
 	@Target({ ElementType.FIELD })
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface ModelService {
 	}
 
-	private Presenter(Context context, List<IModel> modelList) {
-		this.context = context;
-
-		this.handlerMap = new HashMap<Callback, Handler>();
-		this.modelHandlerMap = new HashMap<String, Handler>();
-		this.modelServiceMap = new HashMap<Integer, Handler>();
-
-		this.modelHandlerList = new ArrayList<Handler>(modelList.size());
-		this.viewHandlerList = new ArrayList<Handler>();
-
-		for (int i = 0; i < modelList.size(); i++) {
-			String modelClassName = modelList.get(i).getClass().getName();
-
-			// Init model handler.
-			HandlerThread handlerThread = new HandlerThread(modelClassName);
-			handlerThread.start();
-			Handler modelHandler = new Handler(handlerThread.getLooper(),
-					modelList.get(i));
-
-			// Associate model services to model handler.
-			this.fetchModelServices(modelHandler, modelList.get(i));
-
-			this.modelHandlerList.add(modelHandler);
-			this.modelHandlerMap.put(modelClassName, modelHandler);
-		}
-
-		// TODO ezt a rész még nem vágom
-		this.handlerThread = new HandlerThread(getClass().getCanonicalName());
-		this.handlerThread.start();
-		this.handler = new Handler(this.handlerThread.getLooper(), this);
+	@Target({ ElementType.FIELD })
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface ControllerServices {
 	}
 
-	private void fetchModelServices(Handler modelHandler, IModel model) {
-		Field[] fields = model.getClass().getFields();
-		for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
-			if (fields[fieldIndex].isAnnotationPresent(ModelService.class)) {
-				try {
-					int serviceId = fields[fieldIndex].getInt(model);
-					this.modelServiceMap.put(serviceId, modelHandler);
-				} catch (IllegalArgumentException exception) {
-					Log.w(TAG, "fetchModelServices:", exception);
-				} catch (IllegalAccessException exception) {
-					Log.w(TAG, "fetchModelServices:", exception);
-				}
-			}
-		}
+	public final int getModelServiceId(String serviceName) {
+//		Log.d(TAG, "getModelServiceId - serviceName: " + serviceName);
+//		Log.d(TAG, "getModelServiceId - serviceNameModelIdMap.size: "
+//				+ serviceNameModelIdMap.size());
+		return this.serviceNameModelIdMap.get(serviceName);
 	}
 
 	public final void subscribe(Callback viewComponentCallback) {
@@ -198,6 +167,86 @@ public final class Presenter implements Callback {
 		Log.d(TAG, "sendModelMessage - END");
 	}
 
+	private Presenter(Context context, List<IController> modelList) {
+		this.context = context;
+		Log.d(TAG, "Presenter - START");
+		this.handlerMap = new HashMap<Callback, Handler>();
+		this.modelHandlerMap = new HashMap<String, Handler>();
+		this.modelServiceMap = new HashMap<Integer, Handler>();
+		this.serviceNameModelIdMap = new HashMap<String, Integer>();
+//		this.modelIdServiceNameMap = new HashMap<Integer, String>();
+
+		this.modelHandlerList = new ArrayList<Handler>(modelList.size());
+		this.viewHandlerList = new ArrayList<Handler>();
+
+		for (int i = 0; i < modelList.size(); i++) {
+			String modelClassName = modelList.get(i).getClass().getName();
+
+			// Init model handler.
+			HandlerThread handlerThread = new HandlerThread(modelClassName);
+			handlerThread.start();
+			Handler modelHandler = new Handler(handlerThread.getLooper(),
+					modelList.get(i));
+
+			// Associate model services to model handler.
+			this.fetchModelServices(modelHandler, modelList.get(i));
+			this.fetchControllerServices(modelHandler, modelList.get(i));
+
+			this.modelHandlerList.add(modelHandler);
+			this.modelHandlerMap.put(modelClassName, modelHandler);
+		}
+
+		// TODO ezt a rész még nem vágom
+		this.handlerThread = new HandlerThread(getClass().getCanonicalName());
+		this.handlerThread.start();
+		this.handler = new Handler(this.handlerThread.getLooper(), this);
+	}
+
+	@Deprecated
+	private void fetchModelServices(Handler modelHandler, IController controller) {
+		Field[] fields = controller.getClass().getFields();
+		for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+			if (fields[fieldIndex].isAnnotationPresent(ModelService.class)) {
+				try {
+					int serviceId = fields[fieldIndex].getInt(controller);
+					// String serviceName = fields[fieldIndex].getName();
+					this.modelServiceMap.put(serviceId, modelHandler);
+//					this.modelServiceNameMap.put(serviceName, serviceId);
+				} catch (IllegalArgumentException exception) {
+					Log.w(TAG, "fetchModelServices:", exception);
+				} catch (IllegalAccessException exception) {
+					Log.w(TAG, "fetchModelServices:", exception);
+				}
+			}
+		}
+	}
+
+	private void fetchControllerServices(Handler modelHandler, IController controller) {
+		Log.i(TAG, "fetchControllerServices - START");
+		Field[] fields = controller.getClass().getFields();
+		for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+			if (fields[fieldIndex]
+					.isAnnotationPresent(ControllerServices.class)) {
+				try {
+					String[] serviceNames = (String[]) fields[fieldIndex]
+							.get(null);
+					for (String serviceName : serviceNames) {
+						int serviceId = (int) System.currentTimeMillis();
+						this.modelServiceMap.put(serviceId, modelHandler);
+						this.serviceNameModelIdMap.put(serviceName, serviceId);
+						Log.i(TAG, "fetchControllerServices - serviceName: " + serviceName);
+						// this.modelIdServiceNameMap.put(serviceId,
+						// serviceName);
+					}
+				} catch (IllegalArgumentException exception) {
+					Log.w(TAG, "fetchModelServices:", exception);
+				} catch (IllegalAccessException exception) {
+					Log.w(TAG, "fetchModelServices:", exception);
+				}
+			}
+		}
+	}
+
 	private void sendMessageToTarget(Handler handler, int what, int arg1,
 			int arg2, Object obj, Bundle bundle) {
 		if (handler != null) {
@@ -205,7 +254,7 @@ public final class Presenter implements Callback {
 			message.setData(bundle);
 			message.sendToTarget();
 		} else {
-			Log.d(TAG, "sendMessageToTarget - handler not found: " + what);
+			Log.w(TAG, "sendMessageToTarget - handler not found: " + what);
 		}
 	}
 

@@ -16,7 +16,7 @@ public abstract class AbstractController implements IController {
 				MessageObject messageObject);
 	}
 
-	public static final Map<Integer, ContollerTask> CONTROLLER_TASK_MAP = new HashMap<Integer, AbstractController.ContollerTask>();
+	private static final Map<Integer, ContollerTask> CONTROLLER_TASK_MAP = new HashMap<Integer, AbstractController.ContollerTask>();
 
 	@Override
 	public final boolean handleMessage(Message msg) {
@@ -38,9 +38,16 @@ public abstract class AbstractController implements IController {
 	@Override
 	public abstract void init(Context context);
 
-	protected void registerTask(int serviceId, ContollerTask contollerTask) {
+	public void registerTask(int serviceId, ContollerTask contollerTask) {
 		Log.i(TAG, "registerTask - register: " + serviceId);
 		CONTROLLER_TASK_MAP.put(serviceId, contollerTask);
+	}
+
+	public final void registerTask(String serviceName,
+			ContollerTask contollerTask) {
+		Log.i(TAG, "registerTask - register: " + serviceName);
+		this.registerTask(Presenter.getInst().getModelServiceId(serviceName),
+				contollerTask);
 	}
 
 }

@@ -15,16 +15,13 @@ public abstract class AbstractView extends Activity implements Callback, IView {
 		public abstract void execute(MessageObject messageObject);
 	}
 
-	public static final Map<Integer, ViewTask> VIEW_TASK_MAP = new HashMap<Integer, AbstractView.ViewTask>();
+	private static final Map<Integer, ViewTask> VIEW_TASK_MAP = new HashMap<Integer, AbstractView.ViewTask>();
 
 	@Override
 	public final boolean handleMessage(Message msg) {
-//		Log.d(TAG, "handleMessage - START");
-		// Callback sender = null;
 		MessageObject messageObject = null;
 		if (msg.obj != null && msg.obj instanceof MessageObject) {
 			messageObject = (MessageObject) msg.obj;
-			// sender = messageObject.getSenderView();
 		}
 
 		ViewTask task = VIEW_TASK_MAP.get(msg.what);
@@ -38,5 +35,11 @@ public abstract class AbstractView extends Activity implements Callback, IView {
 	public final void registerTask(int serviceId, ViewTask viewTask) {
 		Log.i(TAG, "registerTask - register: " + serviceId);
 		VIEW_TASK_MAP.put(serviceId, viewTask);
+	}
+
+	public final void registerTask(String serviceName, ViewTask viewTask) {
+		Log.i(TAG, "registerTask - register: " + serviceName);
+		this.registerTask(Presenter.getInst().getModelServiceId(serviceName),
+				viewTask);
 	}
 }

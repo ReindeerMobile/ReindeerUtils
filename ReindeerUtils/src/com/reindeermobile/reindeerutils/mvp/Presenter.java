@@ -40,7 +40,6 @@ public final class Presenter implements Callback {
 
 	// TODO resolv back & forth mapping
 	private Map<String, Integer> serviceNameModelIdMap;
-//	private Map<Integer, String> modelIdServiceNameMap;
 	private Context context;
 	private Handler handler;
 	private HandlerThread handlerThread;
@@ -48,9 +47,9 @@ public final class Presenter implements Callback {
 	public static final void initInstance(Context context,
 			List<IController> modelList) {
 		INSTANCE = new Presenter(context, modelList);
-		
+
 		Log.i(TAG, "initInstance - init models...");
-		for (IController controller: modelList) {
+		for (IController controller : modelList) {
 			controller.init(context);
 		}
 		Log.i(TAG, "initInstance - OK");
@@ -60,7 +59,10 @@ public final class Presenter implements Callback {
 		return INSTANCE;
 	}
 
-	@Deprecated
+	
+	/**
+	 * @deprecated Use instead {@link ControllerServices}!
+	 */
 	@Target({ ElementType.FIELD })
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface ModelService {
@@ -72,9 +74,9 @@ public final class Presenter implements Callback {
 	}
 
 	public final int getModelServiceId(String serviceName) {
-//		Log.d(TAG, "getModelServiceId - serviceName: " + serviceName);
-//		Log.d(TAG, "getModelServiceId - serviceNameModelIdMap.size: "
-//				+ serviceNameModelIdMap.size());
+		// Log.d(TAG, "getModelServiceId - serviceName: " + serviceName);
+		// Log.d(TAG, "getModelServiceId - serviceNameModelIdMap.size: "
+		// + serviceNameModelIdMap.size());
 		return this.serviceNameModelIdMap.get(serviceName);
 	}
 
@@ -104,6 +106,22 @@ public final class Presenter implements Callback {
 
 	public Context getApplicationContext() {
 		return this.context;
+	}
+
+	public void sendViewMessage(String serviceName) {
+		this.sendViewMessage(this.getModelServiceId(serviceName), 0, 0, null);
+	}
+
+	public void sendViewMessage(String serviceName, int arg1) {
+		this.sendViewMessage(this.getModelServiceId(serviceName), arg1, 0, null);
+	}
+
+	public void sendViewMessage(String serviceName, int arg1, MessageObject obj) {
+		this.sendViewMessage(this.getModelServiceId(serviceName), arg1, 0, obj);
+	}
+
+	public void sendViewMessage(String serviceName, MessageObject obj) {
+		this.sendViewMessage(this.getModelServiceId(serviceName), 0, 0, obj);
 	}
 
 	public void sendViewMessage(int what) {
@@ -145,6 +163,18 @@ public final class Presenter implements Callback {
 		}
 	}
 
+	public void sendModelMessage(String serviceName) {
+		this.sendModelMessage(this.getModelServiceId(serviceName), 0, 0, null);
+	}
+
+	public void sendModelMessage(String serviceName, int arg, MessageObject obj) {
+		this.sendModelMessage(this.getModelServiceId(serviceName), arg, 0, obj);
+	}
+
+	public void sendModelMessage(String serviceName, MessageObject obj) {
+		this.sendModelMessage(this.getModelServiceId(serviceName), 0, 0, obj);
+	}
+
 	public void sendModelMessage(int what) {
 		this.sendModelMessage(what, 0, 0, null);
 	}
@@ -174,7 +204,6 @@ public final class Presenter implements Callback {
 		this.modelHandlerMap = new HashMap<String, Handler>();
 		this.modelServiceMap = new HashMap<Integer, Handler>();
 		this.serviceNameModelIdMap = new HashMap<String, Integer>();
-//		this.modelIdServiceNameMap = new HashMap<Integer, String>();
 
 		this.modelHandlerList = new ArrayList<Handler>(modelList.size());
 		this.viewHandlerList = new ArrayList<Handler>();
@@ -211,7 +240,6 @@ public final class Presenter implements Callback {
 					int serviceId = fields[fieldIndex].getInt(controller);
 					// String serviceName = fields[fieldIndex].getName();
 					this.modelServiceMap.put(serviceId, modelHandler);
-//					this.modelServiceNameMap.put(serviceName, serviceId);
 				} catch (IllegalArgumentException exception) {
 					Log.w(TAG, "fetchModelServices:", exception);
 				} catch (IllegalAccessException exception) {
@@ -221,7 +249,8 @@ public final class Presenter implements Callback {
 		}
 	}
 
-	private void fetchControllerServices(Handler modelHandler, IController controller) {
+	private void fetchControllerServices(Handler modelHandler,
+			IController controller) {
 		Log.i(TAG, "fetchControllerServices - START");
 		Field[] fields = controller.getClass().getFields();
 		for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
@@ -234,9 +263,8 @@ public final class Presenter implements Callback {
 						int serviceId = (int) System.currentTimeMillis();
 						this.modelServiceMap.put(serviceId, modelHandler);
 						this.serviceNameModelIdMap.put(serviceName, serviceId);
-						Log.i(TAG, "fetchControllerServices - serviceName: " + serviceName);
-						// this.modelIdServiceNameMap.put(serviceId,
-						// serviceName);
+						Log.i(TAG, "fetchControllerServices - serviceName: "
+								+ serviceName);
 					}
 				} catch (IllegalArgumentException exception) {
 					Log.w(TAG, "fetchModelServices:", exception);

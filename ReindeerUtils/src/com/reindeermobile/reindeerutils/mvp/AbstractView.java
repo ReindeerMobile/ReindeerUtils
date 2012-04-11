@@ -39,7 +39,11 @@ public abstract class AbstractView extends Activity implements Callback, IView {
 
 	public final void registerTask(String serviceName, ViewTask viewTask) {
 		Log.i(TAG, "registerTask - register: " + serviceName);
-		this.registerTask(Presenter.getInst().getModelServiceId(serviceName),
-				viewTask);
+		try {
+			this.registerTask(Presenter.getInst()
+					.getModelServiceId(serviceName), viewTask);
+		} catch (ServiceNotRegisteredException exception) {
+			Log.w(TAG, "registerTask - service not found:", exception);
+		}
 	}
 }

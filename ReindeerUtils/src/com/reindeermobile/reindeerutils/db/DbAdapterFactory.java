@@ -57,7 +57,7 @@ public enum DbAdapterFactory {
 	}
 
 	public void init(Class<? extends BaseDbEntity>... classes) {
-		Log.d(TAG, "init - START");
+		Log.i(TAG, "init - START");
 		this.databaseTableMap = new HashMap<Class<? extends BaseDbEntity>, DatabaseTable>();
 		for (Class<? extends BaseDbEntity> clazz : classes) {
 			DatabaseTable databaseTable = new DatabaseTable(clazz);
@@ -174,7 +174,7 @@ public enum DbAdapterFactory {
 
 		@Override
 		public T insert(T entity) {
-			Log.d(TAG, "save - START");
+			Log.d(TAG, "insert - START");
 
 			ContentValues values = this.entityToContentValues(entity);
 
@@ -184,16 +184,53 @@ public enum DbAdapterFactory {
 				database = getDatabase();
 				newId = database.insert(this.databaseTable.getName(), null,
 						values);
-				entity.setId(newId);
+				if (newId != -1) {
+					entity.setId(newId);
+				} else {
+					entity = null;
+				}
 			} catch (SQLException exception) {
-				Log.w(TAG, "save - Exception: ", exception);
+				Log.w(TAG, "insert - Exception: ", exception);
 				throw exception;
 			} finally {
 				if (database != null) {
 					try {
 						database.close();
 					} catch (Exception exception) {
-						Log.w(TAG, "save - close databse :", exception);
+						Log.w(TAG, "insert - close databse :", exception);
+					}
+				}
+			}
+			return entity;
+		}
+
+		public T replace(T entity) {
+			Log.d(TAG, "replace - START");
+
+			ContentValues values = this.entityToContentValues(entity);
+
+			SQLiteDatabase database = null;
+			long newId = -1;
+			try {
+				database = getDatabase();
+				newId = database.replace(this.databaseTable.getName(), null,
+						values);
+				// newId = database.insert(this.databaseTable.getName(), null,
+				// values);
+				if (newId != -1) {
+					entity.setId(newId);
+				} else {
+					entity = null;
+				}
+			} catch (SQLException exception) {
+				Log.w(TAG, "replace - Exception: ", exception);
+				throw exception;
+			} finally {
+				if (database != null) {
+					try {
+						database.close();
+					} catch (Exception exception) {
+						Log.w(TAG, "replace - close databse :", exception);
 					}
 				}
 			}
@@ -238,13 +275,25 @@ public enum DbAdapterFactory {
 			return entity;
 		};
 
+		/**
+		 * Ha az entity null, akkor törli az összes elemet.
+		 * 
+		 * @see {@link #clear()}
+		 */
 		@Override
-		public void remove(T entity) {
+		public int remove(T entity) {
 			SQLiteDatabase database = null;
+			int affectedCount = 0;
 			try {
 				database = getDatabase();
-				database.delete(this.databaseTable.getName(), COLUMN_ID + "= "
-						+ entity.getId(), null);
+				if (entity != null) {
+					affectedCount = database.delete(
+							this.databaseTable.getName(), COLUMN_ID + "= "
+									+ entity.getId(), null);
+				} else {
+					affectedCount = database.delete(
+							this.databaseTable.getName(), "1", null);
+				}
 			} catch (SQLException exception) {
 				Log.w(TAG, "remove - Exception:", exception);
 				throw exception;
@@ -257,6 +306,17 @@ public enum DbAdapterFactory {
 					}
 				}
 			}
+			return affectedCount;
+		}
+
+		/**
+		 * Clear all rows.
+		 * 
+		 * @see #remove(BaseDbEntity)
+		 */
+		@Override
+		public int clear() {
+			return this.remove(null);
 		}
 
 		public List<T> listWithQuery(String query) {

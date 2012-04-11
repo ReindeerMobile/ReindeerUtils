@@ -11,11 +11,15 @@ public interface IDatabaseAdapter<T extends BaseDbEntity> {
 
 	T insert(T entity);
 	
+	T replace(T entity);
+	
 	T update(T entity);
 	
 	int insertList(List<T> entities);
 
-	void remove(T entity);
+	int remove(T entity);
+	
+	int clear();
 
 	List<T> list();
 	

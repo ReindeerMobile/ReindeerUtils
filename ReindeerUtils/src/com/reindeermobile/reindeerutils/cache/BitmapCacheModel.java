@@ -2,7 +2,8 @@ package com.reindeermobile.reindeerutils.cache;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.reindeermobile.reindeerutils.mvp.IModel;
+import com.reindeermobile.reindeerutils.mvp.AbstractController.ContollerTask;
+import com.reindeermobile.reindeerutils.mvp.IController;
 import com.reindeermobile.reindeerutils.mvp.MessageObject;
 import com.reindeermobile.reindeerutils.mvp.Presenter;
 import com.reindeermobile.reindeerutils.mvp.Presenter.ModelService;
@@ -21,7 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-public class BitmapCacheModel implements IModel {
+public class BitmapCacheModel implements IController {
 	private static final String APP_DATA_FOLDER = "/data/data/com.reindeermobile.newdbexplist/";
 
 	public static final String TAG = "BitmapCacheModel";
@@ -173,6 +174,14 @@ public class BitmapCacheModel implements IModel {
 						new MessageObject(senderCallback, bitmap));
 			}
 		}
+	}
+
+	@Override
+	public void registerTask(int serviceId, ContollerTask contollerTask) {
+	}
+
+	@Override
+	public void registerTask(String serviceName, ContollerTask contollerTask) {
 	}
 
 }

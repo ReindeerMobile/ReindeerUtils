@@ -46,13 +46,16 @@ public class MappedDataBaseHelper extends DataBaseHelper {
 
 	@Override
 	protected void init(SQLiteDatabase database) {
-		int dbVersion = 1;
-		if (this.version > 1) {
-			dbVersion = this.version;
+
+		for (int i = 1; i < this.version + 1; i++) {
+			String sqlFile = "insert_v" + i + ".sql";
+			Log.i(TAG, "onUpgrade - insert/update tables: " + sqlFile);
+			super.loadSqlFile(database, sqlFile);
 		}
-		String sqlFile = "insert_v" + dbVersion + ".sql";
-		Log.i(TAG, "onCreate - insert tables: " + sqlFile);
-		loadSqlFile(database, sqlFile);
+//		
+//		String sqlFile = "insert_v" + dbVersion + ".sql";
+//		Log.i(TAG, "onCreate - insert tables: " + sqlFile);
+//		loadSqlFile(database, sqlFile);
 	}
 
 	@Override

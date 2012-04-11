@@ -38,6 +38,8 @@ public abstract class AbstractController implements IController {
 	@Override
 	public abstract void init(Context context);
 
+	protected abstract void initTasks();
+
 	public void registerTask(int serviceId, ContollerTask contollerTask) {
 		Log.i(TAG, "registerTask - register: " + serviceId);
 		CONTROLLER_TASK_MAP.put(serviceId, contollerTask);
@@ -46,8 +48,12 @@ public abstract class AbstractController implements IController {
 	public final void registerTask(String serviceName,
 			ContollerTask contollerTask) {
 		Log.i(TAG, "registerTask - register: " + serviceName);
-		this.registerTask(Presenter.getInst().getModelServiceId(serviceName),
-				contollerTask);
+		try {
+			this.registerTask(Presenter.getInst()
+					.getModelServiceId(serviceName), contollerTask);
+		} catch (ServiceNotRegisteredException exception) {
+			Log.w(TAG, "registerTask - service not registered:", exception);
+		}
 	}
 
 }

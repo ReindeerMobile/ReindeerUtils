@@ -1,6 +1,6 @@
 package com.reindeermobile.reindeerutils.mvp;
 
-import com.reindeermobile.reindeerutils.mvp.AbstractView.ViewTask;
+import com.reindeermobile.reindeerutils.mvp.ViewHandler.ViewTask;
 
 public interface IView {
 	void registerTask(int serviceId, ViewTask viewTask);

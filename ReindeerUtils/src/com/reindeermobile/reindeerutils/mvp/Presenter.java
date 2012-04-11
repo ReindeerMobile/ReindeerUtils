@@ -23,6 +23,8 @@ public final class Presenter implements Callback {
 
 	private static volatile Presenter INSTANCE;
 
+	private int serviceIdCounter = 1;
+
 	/**
 	 * A modellek listája.
 	 */
@@ -59,7 +61,6 @@ public final class Presenter implements Callback {
 		return INSTANCE;
 	}
 
-	
 	/**
 	 * @deprecated Use instead {@link ControllerServices}!
 	 */
@@ -73,11 +74,17 @@ public final class Presenter implements Callback {
 	public @interface ControllerServices {
 	}
 
-	public final int getModelServiceId(String serviceName) {
+	public final int getModelServiceId(String serviceName)
+			throws ServiceNotRegisteredException {
 		// Log.d(TAG, "getModelServiceId - serviceName: " + serviceName);
 		// Log.d(TAG, "getModelServiceId - serviceNameModelIdMap.size: "
 		// + serviceNameModelIdMap.size());
-		return this.serviceNameModelIdMap.get(serviceName);
+		if (this.serviceNameModelIdMap.containsKey(serviceName)) {
+			return this.serviceNameModelIdMap.get(serviceName);
+		} else {
+
+			throw new ServiceNotRegisteredException();
+		}
 	}
 
 	public final void subscribe(Callback viewComponentCallback) {
@@ -109,19 +116,38 @@ public final class Presenter implements Callback {
 	}
 
 	public void sendViewMessage(String serviceName) {
-		this.sendViewMessage(this.getModelServiceId(serviceName), 0, 0, null);
+		try {
+			this.sendViewMessage(this.getModelServiceId(serviceName), 0, 0,
+					null);
+		} catch (ServiceNotRegisteredException exception) {
+			Log.w(TAG, "sendViewMessage - service not found:", exception);
+		}
 	}
 
 	public void sendViewMessage(String serviceName, int arg1) {
-		this.sendViewMessage(this.getModelServiceId(serviceName), arg1, 0, null);
+		try {
+			this.sendViewMessage(this.getModelServiceId(serviceName), arg1, 0,
+					null);
+		} catch (ServiceNotRegisteredException exception) {
+			Log.w(TAG, "sendViewMessage - service not found:", exception);
+		}
 	}
 
 	public void sendViewMessage(String serviceName, int arg1, MessageObject obj) {
-		this.sendViewMessage(this.getModelServiceId(serviceName), arg1, 0, obj);
+		try {
+			this.sendViewMessage(this.getModelServiceId(serviceName), arg1, 0,
+					obj);
+		} catch (ServiceNotRegisteredException exception) {
+			Log.w(TAG, "sendViewMessage - service not found:", exception);
+		}
 	}
 
 	public void sendViewMessage(String serviceName, MessageObject obj) {
-		this.sendViewMessage(this.getModelServiceId(serviceName), 0, 0, obj);
+		try {
+			this.sendViewMessage(this.getModelServiceId(serviceName), 0, 0, obj);
+		} catch (ServiceNotRegisteredException exception) {
+			Log.w(TAG, "sendViewMessage - service not found:", exception);
+		}
 	}
 
 	public void sendViewMessage(int what) {
@@ -164,15 +190,30 @@ public final class Presenter implements Callback {
 	}
 
 	public void sendModelMessage(String serviceName) {
-		this.sendModelMessage(this.getModelServiceId(serviceName), 0, 0, null);
+		try {
+			this.sendModelMessage(this.getModelServiceId(serviceName), 0, 0,
+					null);
+		} catch (ServiceNotRegisteredException exception) {
+			Log.w(TAG, "sendViewMessage - service not found:", exception);
+		}
 	}
 
 	public void sendModelMessage(String serviceName, int arg, MessageObject obj) {
-		this.sendModelMessage(this.getModelServiceId(serviceName), arg, 0, obj);
+		try {
+			this.sendModelMessage(this.getModelServiceId(serviceName), arg, 0,
+					obj);
+		} catch (ServiceNotRegisteredException exception) {
+			Log.w(TAG, "sendViewMessage - service not found:", exception);
+		}
 	}
 
 	public void sendModelMessage(String serviceName, MessageObject obj) {
-		this.sendModelMessage(this.getModelServiceId(serviceName), 0, 0, obj);
+		try {
+			this.sendModelMessage(this.getModelServiceId(serviceName), 0, 0,
+					obj);
+		} catch (ServiceNotRegisteredException exception) {
+			Log.w(TAG, "sendViewMessage - service not found:", exception);
+		}
 	}
 
 	public void sendModelMessage(int what) {
@@ -260,7 +301,7 @@ public final class Presenter implements Callback {
 					String[] serviceNames = (String[]) fields[fieldIndex]
 							.get(null);
 					for (String serviceName : serviceNames) {
-						int serviceId = (int) System.currentTimeMillis();
+						int serviceId = serviceIdCounter++;
 						this.modelServiceMap.put(serviceId, modelHandler);
 						this.serviceNameModelIdMap.put(serviceName, serviceId);
 						Log.i(TAG, "fetchControllerServices - serviceName: "

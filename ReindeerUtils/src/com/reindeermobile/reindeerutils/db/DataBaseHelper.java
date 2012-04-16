@@ -1,19 +1,17 @@
 package com.reindeermobile.reindeerutils.db;
 
-import com.reindeermobile.reindeerutils.view.StringUtils;
-import com.reindeermobile.reindeerutils.view.ViewUtils;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import android.content.Context;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import com.reindeermobile.reindeerutils.view.StringUtils;
+import com.reindeermobile.reindeerutils.view.ViewUtils;
 
 public class DataBaseHelper extends AbstractDatabaseHelper {
 	public static final String TAG = "DataBaseHelper";

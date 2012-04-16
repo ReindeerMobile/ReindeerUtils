@@ -1,13 +1,12 @@
 package com.reindeermobile.reindeerutils.cache;
 
-import com.google.common.collect.MapMaker;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.util.Log;
 
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
+import com.google.common.collect.MapMaker;
 
 public enum BitmapCacheEnum {
 	INSTANCE;
@@ -25,7 +24,6 @@ public enum BitmapCacheEnum {
 			mapMaker.initialCapacity(20);
 			mapMaker.expiration(5 * 60, TimeUnit.SECONDS);
 			mapMaker.concurrencyLevel(16);
-//			mapMaker.softValues();
 			this.bitmapCache = mapMaker.makeMap();
 		}
 	}
@@ -35,12 +33,10 @@ public enum BitmapCacheEnum {
 			this.bitmapCache.clear();
 		}
 		this.bitmapCache.put(key, bitmap);
-//		Log.d(TAG, "put - mapped: " + key);
 	}
 
 	public Bitmap get(String key) {
 		if (key != null && this.bitmapCache != null) {
-//			Log.d(TAG, "get - get bitmap by " + key);
 			return this.bitmapCache.get(key);
 		} else {
 			return null;

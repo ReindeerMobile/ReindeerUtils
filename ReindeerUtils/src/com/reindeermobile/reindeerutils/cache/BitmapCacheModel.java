@@ -1,5 +1,18 @@
 package com.reindeermobile.reindeerutils.cache;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.os.Handler.Callback;
+import android.os.Message;
+import android.util.Log;
+
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.reindeermobile.reindeerutils.mvp.AbstractController.ContollerTask;
@@ -8,19 +21,6 @@ import com.reindeermobile.reindeerutils.mvp.MessageObject;
 import com.reindeermobile.reindeerutils.mvp.Presenter;
 import com.reindeermobile.reindeerutils.mvp.Presenter.ModelService;
 import com.reindeermobile.reindeerutils.view.ViewUtils;
-
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.os.Handler.Callback;
-import android.os.Message;
-import android.util.Log;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 public class BitmapCacheModel implements IController {
 	private static final String APP_DATA_FOLDER = "/data/data/com.reindeermobile.newdbexplist/";

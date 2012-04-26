@@ -113,7 +113,7 @@ public enum DbAdapterFactory {
 				database = getDatabase();
 
 				String query = this.buildSelectQueryByEntity(entity).toString();
-				Log.d(TAG, "find - query: " + query);
+//				Log.d(TAG, "find - query: " + query);
 				cursor = database.rawQuery(query, null);
 
 				entity = parseCursor(entity, cursor);
@@ -147,7 +147,7 @@ public enum DbAdapterFactory {
 				database = getDatabase();
 
 				String query = this.buildSelectQueryByEntity(id).toString();
-				Log.d(TAG, "findById - query: " + query);
+				//Log.d(TAG, "findById - query: " + query);
 				cursor = database.rawQuery(query, null);
 
 				entity = parseCursor(cursor);
@@ -174,7 +174,7 @@ public enum DbAdapterFactory {
 
 		@Override
 		public T insert(T entity) {
-			Log.d(TAG, "insert - START");
+			//Log.d(TAG, "insert - START");
 
 			ContentValues values = this.entityToContentValues(entity);
 
@@ -205,7 +205,7 @@ public enum DbAdapterFactory {
 		}
 
 		public T replace(T entity) {
-			Log.d(TAG, "replace - START");
+			//Log.d(TAG, "replace - START");
 
 			ContentValues values = this.entityToContentValues(entity);
 
@@ -242,8 +242,9 @@ public enum DbAdapterFactory {
 			Log.d(TAG, "insertList - START");
 			int count = 0;
 			for (T entity : entities) {
-				Log.d(TAG, "insertList - entity: " + entity.toString());
+				Log.d(TAG, "insertList - persist: " + entity.toString());
 				T savedEntity = insert(entity);
+				Log.d(TAG, "insertList - persisted: " + entity.toString());
 				if (savedEntity != null) {
 					count++;
 				}
@@ -326,7 +327,7 @@ public enum DbAdapterFactory {
 			try {
 				database = getDatabase();
 
-				Log.d(TAG, "listWithQuery - query: " + query);
+				//Log.d(TAG, "listWithQuery - query: " + query);
 				cursor = database.rawQuery(query, null);
 
 				resultList = parseCursorToList(cursor);
@@ -383,7 +384,7 @@ public enum DbAdapterFactory {
 			}
 
 			if (resultList != null && cursor != null && cursor.moveToFirst()) {
-				Log.d(TAG, "parseCursorToList - HERE");
+				//Log.d(TAG, "parseCursorToList - HERE");
 				do {
 					try {
 						T result = this.clazz.newInstance();
@@ -536,20 +537,26 @@ public enum DbAdapterFactory {
 			ContentValues values = new ContentValues();
 			for (Entry<String, DatabaseColumn> entry : this.databaseTable
 					.getAllColumn().entrySet()) {
-				Method getter = entry.getValue().getGetter();
-				try {
-					Object value = getter.invoke(entity, new Object[] {});
-					String valueString = objToString(value);
-					if (valueString != null) {
-						values.put(entry.getValue().getColumnName(),
-								valueString);
+				//Log.d(TAG, "entityToContentValues - " + entry.getValue().getColumnName());
+				if (!entry.getValue().getColumnName().equals("_id")) {
+					Method getter = entry.getValue().getGetter();
+					try {
+						Object value = getter.invoke(entity, new Object[] {});
+						String valueString = objToString(value);
+						if (valueString != null) {
+							values.put(entry.getValue().getColumnName(),
+									valueString);
+						}
+					} catch (IllegalArgumentException exception) {
+						Log.w(TAG, "insert - IllegalArgumentException"
+								+ exception);
+					} catch (IllegalAccessException exception) {
+						Log.w(TAG, "insert - IllegalAccessException"
+								+ exception);
+					} catch (InvocationTargetException exception) {
+						Log.w(TAG, "insert - InvocationTargetException"
+								+ exception);
 					}
-				} catch (IllegalArgumentException exception) {
-					Log.w(TAG, "insert - IllegalArgumentException" + exception);
-				} catch (IllegalAccessException exception) {
-					Log.w(TAG, "insert - IllegalAccessException" + exception);
-				} catch (InvocationTargetException exception) {
-					Log.w(TAG, "insert - InvocationTargetException" + exception);
 				}
 			}
 			return values;

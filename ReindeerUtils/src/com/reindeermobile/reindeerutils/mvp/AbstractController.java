@@ -5,7 +5,9 @@ import android.os.Handler.Callback;
 import android.os.Message;
 import android.util.Log;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractController implements IController {
@@ -17,6 +19,8 @@ public abstract class AbstractController implements IController {
 	}
 
 	private static final Map<Integer, ContollerTask> CONTROLLER_TASK_MAP = new HashMap<Integer, AbstractController.ContollerTask>();
+
+	private Map<String, List<Callback>> viewResponseMap = new HashMap<String, List<Callback>>();
 
 	@Override
 	public final boolean handleMessage(Message msg) {
@@ -53,6 +57,44 @@ public abstract class AbstractController implements IController {
 					.getModelServiceId(serviceName), contollerTask);
 		} catch (ServiceNotRegisteredException exception) {
 			Log.w(TAG, "registerTask - service not registered:", exception);
+		}
+	}
+	
+	@Override
+	public String toString() {
+		return TAG;
+	}
+
+	/**
+	 * A responseServiceId-ra feliratkoztatja a subscriberView-t.
+	 * 
+	 * @param subscriberView
+	 * @param responseServiceId
+	 */
+	protected void subscribeViewToResponse(Callback subscriberView,
+			String responseServiceId) {
+		Log.d(TAG, "subscribeViewToResponse - subsrcibe to "
+				+ responseServiceId);
+		if (this.viewResponseMap.get(responseServiceId) != null) {
+			this.viewResponseMap.get(responseServiceId).add(subscriberView);
+		} else {
+			List<Callback> subscribers = Arrays.asList(subscriberView);
+			this.viewResponseMap.put(responseServiceId, subscribers);
+		}
+	}
+
+	/**
+	 * A responseName-re feliratkozott nézeteknek elküldi az object-et.
+	 * 
+	 * @param responseName
+	 * @param object
+	 */
+	protected void sendResponseToSubscribers(String responseName, Object object) {
+		if (this.viewResponseMap.containsKey(responseName)) {
+			for (Callback callback : this.viewResponseMap.get(responseName)) {
+				Presenter.getInst().sendViewMessage(responseName,
+						new MessageObject(callback, object));
+			}
 		}
 	}
 

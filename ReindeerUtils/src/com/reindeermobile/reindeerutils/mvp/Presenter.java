@@ -35,13 +35,15 @@ public final class Presenter implements Callback {
 	private List<Handler> viewHandlerList;
 	private Map<String, Handler> modelHandlerMap;
 	private HashMap<Callback, Handler> handlerMap;
+
 	/**
 	 * A model szolgáltatás azonosítókhoz rendelt modellek.
 	 */
 	private Map<Integer, Handler> modelServiceMap;
 
 	// TODO resolv back & forth mapping
-	private Map<String, Integer> serviceNameModelIdMap;
+	private Map<String, Integer> serviceNameIdMap;
+	private Map<Integer, String> serviceIdNameMap;
 	private Context context;
 	private Handler handler;
 	private HandlerThread handlerThread;
@@ -76,14 +78,10 @@ public final class Presenter implements Callback {
 
 	public final int getModelServiceId(String serviceName)
 			throws ServiceNotRegisteredException {
-		// Log.d(TAG, "getModelServiceId - serviceName: " + serviceName);
-		// Log.d(TAG, "getModelServiceId - serviceNameModelIdMap.size: "
-		// + serviceNameModelIdMap.size());
-		if (this.serviceNameModelIdMap.containsKey(serviceName)) {
-			return this.serviceNameModelIdMap.get(serviceName);
+		if (this.serviceNameIdMap.containsKey(serviceName)) {
+			return this.serviceNameIdMap.get(serviceName);
 		} else {
-
-			throw new ServiceNotRegisteredException();
+			throw new ServiceNotRegisteredException(serviceName);
 		}
 	}
 
@@ -115,39 +113,24 @@ public final class Presenter implements Callback {
 		return this.context;
 	}
 
-	public void sendViewMessage(String serviceName) {
-		try {
-			this.sendViewMessage(this.getModelServiceId(serviceName), 0, 0,
-					null);
-		} catch (ServiceNotRegisteredException exception) {
-			Log.w(TAG, "sendViewMessage - service not found:", exception);
-		}
+	public void sendViewMessage(String serviceName)
+			throws ServiceNotRegisteredException {
+		this.sendViewMessage(this.getModelServiceId(serviceName), 0, 0, null);
 	}
 
-	public void sendViewMessage(String serviceName, int arg1) {
-		try {
-			this.sendViewMessage(this.getModelServiceId(serviceName), arg1, 0,
-					null);
-		} catch (ServiceNotRegisteredException exception) {
-			Log.w(TAG, "sendViewMessage - service not found:", exception);
-		}
+	public void sendViewMessage(String serviceName, int arg1)
+			throws ServiceNotRegisteredException {
+		this.sendViewMessage(this.getModelServiceId(serviceName), arg1, 0, null);
 	}
 
-	public void sendViewMessage(String serviceName, int arg1, MessageObject obj) {
-		try {
-			this.sendViewMessage(this.getModelServiceId(serviceName), arg1, 0,
-					obj);
-		} catch (ServiceNotRegisteredException exception) {
-			Log.w(TAG, "sendViewMessage - service not found:", exception);
-		}
+	public void sendViewMessage(String serviceName, int arg1, MessageObject obj)
+			throws ServiceNotRegisteredException {
+		this.sendViewMessage(this.getModelServiceId(serviceName), arg1, 0, obj);
 	}
 
-	public void sendViewMessage(String serviceName, MessageObject obj) {
-		try {
-			this.sendViewMessage(this.getModelServiceId(serviceName), 0, 0, obj);
-		} catch (ServiceNotRegisteredException exception) {
-			Log.w(TAG, "sendViewMessage - service not found:", exception);
-		}
+	public void sendViewMessage(String serviceName, MessageObject obj)
+			throws ServiceNotRegisteredException {
+		this.sendViewMessage(this.getModelServiceId(serviceName), 0, 0, obj);
 	}
 
 	public void sendViewMessage(int what) {
@@ -172,48 +155,49 @@ public final class Presenter implements Callback {
 	 * 
 	 * @param what
 	 * @param obj
+	 *            Ha null vagy a sender adattag null, akkor mindenkinek küldi.
 	 */
 	public final void sendViewMessage(int what, int arg1, int arg2,
 			MessageObject obj) {
 		if (obj != null && obj.getSenderView() != null) {
-			Log.d(TAG, "sendViewMessage - what: " + what);
+//			Log.d(TAG, "sendViewMessage - what: " + what);
+
+			if (obj.getSenderView() == null) {
+				Log.d(TAG, "sendViewMessage - BROADCAST_MESSAGE");
+			}
+
 			sendMessageToTarget(this.handlerMap.get(obj.getSenderView()), what,
 					arg1, arg2, obj, null);
 		} else {
-			Log.d(TAG, "sendViewMessage - what: " + what);
+//			Log.d(TAG, "sendViewMessage - what: " + what);
+
 			List<Handler> outBoxList = new ArrayList<Handler>(
 					this.viewHandlerList);
-			for (Handler handler : outBoxList) {
-				sendMessageToTarget(handler, what, arg1, arg2, obj, null);
+
+			if (obj == null) {
+				Log.d(TAG, "sendViewMessage - BROADCAST_MESSAGE - "
+						+ outBoxList.size());
 			}
+
+//			for (Handler handler : outBoxList) {
+//				sendMessageToTarget(handler, what, arg1, arg2, obj, null);
+//			}
 		}
 	}
 
-	public void sendModelMessage(String serviceName) {
-		try {
-			this.sendModelMessage(this.getModelServiceId(serviceName), 0, 0,
-					null);
-		} catch (ServiceNotRegisteredException exception) {
-			Log.w(TAG, "sendViewMessage - service not found:", exception);
-		}
+	public void sendModelMessage(String serviceName)
+			throws ServiceNotRegisteredException {
+		this.sendModelMessage(this.getModelServiceId(serviceName), 0, 0, null);
 	}
 
-	public void sendModelMessage(String serviceName, int arg, MessageObject obj) {
-		try {
-			this.sendModelMessage(this.getModelServiceId(serviceName), arg, 0,
-					obj);
-		} catch (ServiceNotRegisteredException exception) {
-			Log.w(TAG, "sendViewMessage - service not found:", exception);
-		}
+	public void sendModelMessage(String serviceName, int arg, MessageObject obj)
+			throws ServiceNotRegisteredException {
+		this.sendModelMessage(this.getModelServiceId(serviceName), arg, 0, obj);
 	}
 
-	public void sendModelMessage(String serviceName, MessageObject obj) {
-		try {
-			this.sendModelMessage(this.getModelServiceId(serviceName), 0, 0,
-					obj);
-		} catch (ServiceNotRegisteredException exception) {
-			Log.w(TAG, "sendViewMessage - service not found:", exception);
-		}
+	public void sendModelMessage(String serviceName, MessageObject obj)
+			throws ServiceNotRegisteredException {
+		this.sendModelMessage(this.getModelServiceId(serviceName), 0, 0, obj);
 	}
 
 	public void sendModelMessage(int what) {
@@ -230,12 +214,17 @@ public final class Presenter implements Callback {
 
 	public final void sendModelMessage(int what, int arg1, int arg2,
 			MessageObject obj) {
-		Log.d(TAG, "sendModelMessage - START: " + obj);
+
+//		Log.d(TAG,
+//				"sendModelMessage - what: "
+//						+ (this.serviceIdNameMap.get(what) != null ? this.serviceIdNameMap
+//								.get(what) : what) + ", obj: "
+//						+ (obj != null ? obj : "null"));
 		Handler targetHandler = this.modelServiceMap.get(what);
-		Log.d(TAG, "sendModelMessage - what: " + what);
+
 		this.sendMessageToTarget(targetHandler, what, arg1, arg2, obj, null);
+
 		Message.obtain(handler, what, arg1, arg2, obj).sendToTarget();
-		Log.d(TAG, "sendModelMessage - END");
 	}
 
 	private Presenter(Context context, List<IController> modelList) {
@@ -244,7 +233,8 @@ public final class Presenter implements Callback {
 		this.handlerMap = new HashMap<Callback, Handler>();
 		this.modelHandlerMap = new HashMap<String, Handler>();
 		this.modelServiceMap = new HashMap<Integer, Handler>();
-		this.serviceNameModelIdMap = new HashMap<String, Integer>();
+		this.serviceNameIdMap = new HashMap<String, Integer>();
+		this.serviceIdNameMap = new HashMap<Integer, String>();
 
 		this.modelHandlerList = new ArrayList<Handler>(modelList.size());
 		this.viewHandlerList = new ArrayList<Handler>();
@@ -303,9 +293,10 @@ public final class Presenter implements Callback {
 					for (String serviceName : serviceNames) {
 						int serviceId = serviceIdCounter++;
 						this.modelServiceMap.put(serviceId, modelHandler);
-						this.serviceNameModelIdMap.put(serviceName, serviceId);
+						this.serviceNameIdMap.put(serviceName, serviceId);
 						Log.i(TAG, "fetchControllerServices - serviceName: "
 								+ serviceName);
+						this.serviceIdNameMap.put(serviceId, serviceName);
 					}
 				} catch (IllegalArgumentException exception) {
 					Log.w(TAG, "fetchModelServices:", exception);

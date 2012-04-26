@@ -39,7 +39,8 @@ public class MappedDataBaseHelper extends DataBaseHelper {
 	}
 
 	@Override
-	public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
+	public void onUpgrade(SQLiteDatabase database, int oldVersion,
+			int newVersion) {
 		Log.d(TAG, "onUpgrade - START");
 		update(database, oldVersion, newVersion);
 	}
@@ -52,10 +53,10 @@ public class MappedDataBaseHelper extends DataBaseHelper {
 			Log.i(TAG, "onUpgrade - insert/update tables: " + sqlFile);
 			super.loadSqlFile(database, sqlFile);
 		}
-//		
-//		String sqlFile = "insert_v" + dbVersion + ".sql";
-//		Log.i(TAG, "onCreate - insert tables: " + sqlFile);
-//		loadSqlFile(database, sqlFile);
+		//
+		// String sqlFile = "insert_v" + dbVersion + ".sql";
+		// Log.i(TAG, "onCreate - insert tables: " + sqlFile);
+		// loadSqlFile(database, sqlFile);
 	}
 
 	@Override
@@ -104,7 +105,7 @@ public class MappedDataBaseHelper extends DataBaseHelper {
 				databaseTable.getPrimaryColumn().getColumnName());
 		sb = sb.append(" ").append(
 				databaseTable.getPrimaryColumn().getTypeString());
-		sb = sb.append(" PRIMARY KEY");
+		sb = sb.append(" PRIMARY KEY AUTOINCREMENT");
 
 		if (maxCount > 0) {
 			sb = sb.append(",");

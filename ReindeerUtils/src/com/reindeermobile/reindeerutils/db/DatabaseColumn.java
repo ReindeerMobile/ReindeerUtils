@@ -13,6 +13,7 @@ class DatabaseColumn {
 	private Method getter;
 	private boolean notnull;
 	private boolean primary;
+	private boolean autoIncrement;
 
 	private static Map<Type, String> typeMap;
 
@@ -39,10 +40,11 @@ class DatabaseColumn {
 	}
 
 	DatabaseColumn(String columnName, Type columnType, Method setter,
-			Method getter, boolean notnull, boolean primary) {
+			Method getter, boolean notnull, boolean primary, boolean autoIncrement) {
 		this(columnName, columnType, setter, getter);
 		this.notnull = notnull;
 		this.primary = primary;
+		this.autoIncrement = autoIncrement;
 	}
 
 	public final String getColumnName() {
@@ -79,6 +81,14 @@ class DatabaseColumn {
 
 	public void setPrimary(boolean primary) {
 		this.primary = primary;
+	}
+
+	public boolean isAutoIncrement() {
+		return autoIncrement;
+	}
+
+	public void setAutoIncrement(boolean autoIncrement) {
+		this.autoIncrement = autoIncrement;
 	}
 
 	@Override

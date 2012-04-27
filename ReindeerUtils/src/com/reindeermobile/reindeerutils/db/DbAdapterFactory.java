@@ -56,6 +56,11 @@ public enum DbAdapterFactory {
 	public @interface NotNull {
 	}
 
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target({ ElementType.FIELD })
+	public @interface AutoIncrement {
+	}
+
 	public void init(Class<? extends BaseDbEntity>... classes) {
 		Log.i(TAG, "init - START");
 		this.databaseTableMap = new HashMap<Class<? extends BaseDbEntity>, DatabaseTable>();
@@ -113,7 +118,7 @@ public enum DbAdapterFactory {
 				database = getDatabase();
 
 				String query = this.buildSelectQueryByEntity(entity).toString();
-//				Log.d(TAG, "find - query: " + query);
+				// Log.d(TAG, "find - query: " + query);
 				cursor = database.rawQuery(query, null);
 
 				entity = parseCursor(entity, cursor);
@@ -147,7 +152,7 @@ public enum DbAdapterFactory {
 				database = getDatabase();
 
 				String query = this.buildSelectQueryByEntity(id).toString();
-				//Log.d(TAG, "findById - query: " + query);
+				// Log.d(TAG, "findById - query: " + query);
 				cursor = database.rawQuery(query, null);
 
 				entity = parseCursor(cursor);
@@ -174,7 +179,7 @@ public enum DbAdapterFactory {
 
 		@Override
 		public T insert(T entity) {
-			//Log.d(TAG, "insert - START");
+			// Log.d(TAG, "insert - START");
 
 			ContentValues values = this.entityToContentValues(entity);
 
@@ -205,7 +210,7 @@ public enum DbAdapterFactory {
 		}
 
 		public T replace(T entity) {
-			//Log.d(TAG, "replace - START");
+			// Log.d(TAG, "replace - START");
 
 			ContentValues values = this.entityToContentValues(entity);
 
@@ -327,7 +332,7 @@ public enum DbAdapterFactory {
 			try {
 				database = getDatabase();
 
-				//Log.d(TAG, "listWithQuery - query: " + query);
+				// Log.d(TAG, "listWithQuery - query: " + query);
 				cursor = database.rawQuery(query, null);
 
 				resultList = parseCursorToList(cursor);
@@ -384,7 +389,7 @@ public enum DbAdapterFactory {
 			}
 
 			if (resultList != null && cursor != null && cursor.moveToFirst()) {
-				//Log.d(TAG, "parseCursorToList - HERE");
+				// Log.d(TAG, "parseCursorToList - HERE");
 				do {
 					try {
 						T result = this.clazz.newInstance();
@@ -537,8 +542,11 @@ public enum DbAdapterFactory {
 			ContentValues values = new ContentValues();
 			for (Entry<String, DatabaseColumn> entry : this.databaseTable
 					.getAllColumn().entrySet()) {
-				//Log.d(TAG, "entityToContentValues - " + entry.getValue().getColumnName());
-				if (!entry.getValue().getColumnName().equals("_id")) {
+				/*
+				 * Ha AutoIncrement, akkor nem teszi be az oszlopot.
+				 * TODO AutoIncrement ellenőrzés: ezt még gondold át!
+				 */
+				if (!entry.getValue().isAutoIncrement()) {
 					Method getter = entry.getValue().getGetter();
 					try {
 						Object value = getter.invoke(entity, new Object[] {});

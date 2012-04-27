@@ -1,5 +1,6 @@
 package com.reindeermobile.reindeerutils.db;
 
+import com.reindeermobile.reindeerutils.db.DbAdapterFactory.AutoIncrement;
 import com.reindeermobile.reindeerutils.db.DbAdapterFactory.Column;
 import com.reindeermobile.reindeerutils.db.DbAdapterFactory.Id;
 import com.reindeermobile.reindeerutils.db.DbAdapterFactory.NotNull;
@@ -79,7 +80,8 @@ class DatabaseTable {
 					DatabaseColumn databaseColumn = new DatabaseColumn(
 							columnName, columnType, setter, getter,
 							field.isAnnotationPresent(NotNull.class),
-							field.isAnnotationPresent(Id.class));
+							field.isAnnotationPresent(Id.class),
+							field.isAnnotationPresent(AutoIncrement.class));
 
 					// check primary key annotation
 					if (field.isAnnotationPresent(Id.class)) {
@@ -87,8 +89,8 @@ class DatabaseTable {
 					}
 					this.addColumn(databaseColumn);
 
-//					Log.d(TAG, "resolveAnnotatedFields - databaseColumn: "
-//							+ databaseColumn);
+					// Log.d(TAG, "resolveAnnotatedFields - databaseColumn: "
+					// + databaseColumn);
 				} catch (SecurityException exception) {
 					exception.printStackTrace();
 				} catch (NoSuchMethodException exception) {

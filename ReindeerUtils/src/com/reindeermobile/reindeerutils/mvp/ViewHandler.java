@@ -73,11 +73,13 @@ public class ViewHandler implements Callback, IView {
 		}
 	}
 
+	@Override
 	public final void registerViewTask(int serviceId, IViewTask viewTask) {
 		Log.i(TAG, "registerTask - register: " + serviceId);
 		iViewTasksMap.put(serviceId, viewTask);
 	}
 
+	@Override
 	public final void registerViewTask(String serviceName, IViewTask viewTask) {
 		Log.i(TAG, "registerTask - register: " + serviceName);
 		try {

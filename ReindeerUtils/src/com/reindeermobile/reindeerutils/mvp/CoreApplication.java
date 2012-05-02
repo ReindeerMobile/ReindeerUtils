@@ -12,23 +12,22 @@ import java.util.List;
 public class CoreApplication extends Application {
 	public static final String TAG = "CoreApplication";
 
-	private List<IController> modelList;
-//	private List<IView> viewList;
+	private List<IController> controllerList;
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		Log.i(TAG, "onCreate - START at " + System.currentTimeMillis());
-		this.modelList = new ArrayList<IController>();
+		this.controllerList = new ArrayList<IController>();
 
-		this.loadModelClasses();
+		this.loadControllerClasses();
 
 		// Presenter inicializálása
-		Presenter.initInstance(getApplicationContext(), modelList);
+		Presenter.initInstance(getApplicationContext(), controllerList);
 		Log.i(TAG, "onCreate - OK");
 	}
 	
-	private void loadModelClasses() {
+	private void loadControllerClasses() {
 		Log.d(TAG, "loadModelClasses - START");
 		try {
 			ClassLoader loader = getClassLoader();
@@ -49,7 +48,7 @@ public class CoreApplication extends Application {
 //						Log.d(TAG, "loadModelClasses - OK:" + appClass.getName());
 						IController controller = (IController) appClass.newInstance();
 //						model.init(this); // itt még nincs minden ControllerService felszedve.
-						modelList.add(controller);
+						controllerList.add(controller);
 					}
 				}
 			}
@@ -76,7 +75,7 @@ public class CoreApplication extends Application {
 //					if (classContainsInterfaceByName(appClass, IView.class)) {
 //						IView model = (IView) appClass.newInstance();
 //						model.init(this);
-//						modelList.add(model);
+//						controllerList.add(model);
 //					}
 //				}
 //			}

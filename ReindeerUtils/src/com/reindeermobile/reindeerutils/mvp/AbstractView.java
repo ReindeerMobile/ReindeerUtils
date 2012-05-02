@@ -1,5 +1,7 @@
 package com.reindeermobile.reindeerutils.mvp;
 
+import com.reindeermobile.reindeerutils.mvp.exceptions.ServiceNotRegisteredException;
+
 import android.app.Activity;
 import android.os.Handler.Callback;
 import android.os.Message;
@@ -8,6 +10,7 @@ import android.util.Log;
 import java.util.HashMap;
 import java.util.Map;
 
+@Deprecated
 public abstract class AbstractView extends Activity implements Callback, IView {
 	public static final String TAG = "AbstractView";
 
@@ -41,7 +44,7 @@ public abstract class AbstractView extends Activity implements Callback, IView {
 		Log.i(TAG, "registerTask - register: " + serviceName);
 		try {
 			this.registerTask(Presenter.getInst()
-					.getModelServiceId(serviceName), viewTask);
+					.getControllerServiceId(serviceName), viewTask);
 		} catch (ServiceNotRegisteredException exception) {
 			Log.w(TAG, "registerTask - service not found:", exception);
 		}

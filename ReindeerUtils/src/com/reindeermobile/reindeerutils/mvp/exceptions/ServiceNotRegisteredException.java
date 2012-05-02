@@ -1,4 +1,4 @@
-package com.reindeermobile.reindeerutils.mvp;
+package com.reindeermobile.reindeerutils.mvp.exceptions;
 
 public class ServiceNotRegisteredException extends RuntimeException {
 	private static final long serialVersionUID = 1L;

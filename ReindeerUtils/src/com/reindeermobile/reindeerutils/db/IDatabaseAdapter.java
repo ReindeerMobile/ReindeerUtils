@@ -4,7 +4,7 @@ import android.database.Cursor;
 
 import java.util.List;
 
-public interface IDatabaseAdapter<T extends BaseDbEntity> {
+public interface IDatabaseAdapter<T> {
 	T find(T entity);
 
 	T findById(long id);

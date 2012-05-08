@@ -17,6 +17,8 @@ import java.util.Map;
 
 class DatabaseTable {
 	public static final String TAG = "DatabaseTable";
+	
+	public static final String ID_COLUMN_NAME = "_id";
 
 	private String tableName;
 	private DatabaseColumn primaryColumn;
@@ -36,9 +38,11 @@ class DatabaseTable {
 	}
 
 	private <T> void resolveAnnotatedFields(Class<? super T> clazz) {
-		if (clazz != BaseDbEntity.class) {
+//		if (clazz != BaseDbEntity.class) {
+		if (clazz.getSuperclass() != null) {
 			resolveAnnotatedFields(clazz.getSuperclass());
 		}
+//		}
 
 		Field[] fields = clazz.getDeclaredFields();
 		for (int i = 0; i < fields.length; i++) {
@@ -125,6 +129,10 @@ class DatabaseTable {
 
 	public DatabaseColumn getColumn(String columnName) {
 		return this.columnMap.get(columnName);
+	}
+	
+	public DatabaseColumn getIdColumn() {
+		return this.columnMap.get(ID_COLUMN_NAME);
 	}
 
 	public Map<String, DatabaseColumn> getAllColumn() {

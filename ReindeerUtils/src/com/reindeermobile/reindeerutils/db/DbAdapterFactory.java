@@ -28,7 +28,7 @@ public enum DbAdapterFactory {
 
 	public static final String TAG = "DbAdapterFactory";
 
-	private Map<Class<? extends BaseDbEntity>, DatabaseTable> databaseTableMap;
+	private Map<Class<?>, DatabaseTable> databaseTableMap;
 	private boolean firstRun = true;
 
 	DbAdapterFactory() {
@@ -61,17 +61,17 @@ public enum DbAdapterFactory {
 	public @interface AutoIncrement {
 	}
 
-	public void init(Class<? extends BaseDbEntity>... classes) {
+	public void init(Class<?>... classes) {
 		Log.i(TAG, "init - START");
-		this.databaseTableMap = new HashMap<Class<? extends BaseDbEntity>, DatabaseTable>();
-		for (Class<? extends BaseDbEntity> clazz : classes) {
+		this.databaseTableMap = new HashMap<Class<?>, DatabaseTable>();
+		for (Class<?> clazz : classes) {
 			DatabaseTable databaseTable = new DatabaseTable(clazz);
 			this.databaseTableMap.put(clazz, databaseTable);
 		}
 	}
 
-	public static <T extends BaseDbEntity> IDatabaseAdapter<T> createInstance(
-			Class<T> clazz, Context context, String databaseName, int dbVersion) {
+	public static <T> IDatabaseAdapter<T> createInstance(Class<T> clazz,
+			Context context, String databaseName, int dbVersion) {
 
 		if (DbAdapterFactory.INSTANCE.databaseTableMap == null) {
 			throw new NullPointerException(
@@ -97,8 +97,8 @@ public enum DbAdapterFactory {
 				DbAdapterFactory.INSTANCE.databaseTableMap.get(clazz));
 	}
 
-	public class DbAdaptor<T extends BaseDbEntity> extends BaseDbAdaptor
-			implements IDatabaseAdapter<T> {
+	public class DbAdaptor<T> extends BaseDbAdaptor implements
+			IDatabaseAdapter<T> {
 		private Class<T> clazz;
 		private DatabaseTable databaseTable;
 
@@ -189,14 +189,24 @@ public enum DbAdapterFactory {
 				database = getDatabase();
 				newId = database.insert(this.databaseTable.getName(), null,
 						values);
+
 				if (newId != -1) {
-					entity.setId(newId);
+					Method setter = this.databaseTable.getIdColumn()
+							.getSetter();
+					setter.invoke(setter, newId);
+					// entity.setId(newId);
 				} else {
 					entity = null;
 				}
 			} catch (SQLException exception) {
 				Log.w(TAG, "insert - Exception: ", exception);
 				throw exception;
+			} catch (IllegalArgumentException exception) {
+				exception.printStackTrace();
+			} catch (IllegalAccessException exception) {
+				exception.printStackTrace();
+			} catch (InvocationTargetException exception) {
+				exception.printStackTrace();
 			} finally {
 				if (database != null) {
 					try {
@@ -222,14 +232,32 @@ public enum DbAdapterFactory {
 						values);
 				// newId = database.insert(this.databaseTable.getName(), null,
 				// values);
+
 				if (newId != -1) {
-					entity.setId(newId);
+					/*
+					 * Ki kell kérni az ID setterjét és beállítani az új ID-t.
+					 */
+					Method setter = this.databaseTable.getIdColumn()
+							.getSetter();
+					setter.invoke(entity, newId);
+					// entity.setId(newId);
 				} else {
 					entity = null;
 				}
 			} catch (SQLException exception) {
 				Log.w(TAG, "replace - Exception: ", exception);
 				throw exception;
+			} catch (IllegalArgumentException exception) {
+				Log.w(TAG, "replace - Exception: ", exception);
+				throw exception;
+			} catch (IllegalAccessException exception) {
+				Log.w(TAG, "replace - Exception: ", exception);
+				// TODO Elnyeli a kivételt!
+				// throw exception;
+			} catch (InvocationTargetException exception) {
+				Log.w(TAG, "replace - Exception: ", exception);
+				// TODO Elnyeli a kivételt!
+				// throw exception;
 			} finally {
 				if (database != null) {
 					try {
@@ -263,12 +291,26 @@ public enum DbAdapterFactory {
 			long newId = -1;
 			try {
 				database = getDatabase();
+
+				Method getter = this.databaseTable.getIdColumn().getGetter();
+				Method setter = this.databaseTable.getIdColumn().getSetter();
+				
+				Long id = (Long) getter.invoke(entity, new Object [] {});
+				
 				newId = database.update(this.databaseTable.getName(), values,
-						COLUMN_ID + " = " + entity.getId(), null);
-				entity.setId(newId);
+						COLUMN_ID + " = " + id, null);
+				
+				setter.invoke(entity, newId);
+//				entity.setId(newId);
 			} catch (SQLException exception) {
 				Log.w(TAG, "update - Exception: ", exception);
 				throw exception;
+			} catch (IllegalArgumentException exception) {
+				exception.printStackTrace();
+			} catch (IllegalAccessException exception) {
+				exception.printStackTrace();
+			} catch (InvocationTargetException exception) {
+				exception.printStackTrace();
 			} finally {
 				if (database != null) {
 					try {
@@ -292,10 +334,15 @@ public enum DbAdapterFactory {
 			int affectedCount = 0;
 			try {
 				database = getDatabase();
+				
+				Method getter = this.databaseTable.getIdColumn().getGetter();
+
+				Long id = (Long) getter.invoke(entity, new Object [] {});
+				
 				if (entity != null) {
 					affectedCount = database.delete(
 							this.databaseTable.getName(), COLUMN_ID + "= "
-									+ entity.getId(), null);
+									+ id, null);
 				} else {
 					affectedCount = database.delete(
 							this.databaseTable.getName(), "1", null);
@@ -303,6 +350,12 @@ public enum DbAdapterFactory {
 			} catch (SQLException exception) {
 				Log.w(TAG, "remove - Exception:", exception);
 				throw exception;
+			} catch (IllegalArgumentException exception) {
+				exception.printStackTrace();
+			} catch (IllegalAccessException exception) {
+				exception.printStackTrace();
+			} catch (InvocationTargetException exception) {
+				exception.printStackTrace();
 			} finally {
 				if (database != null) {
 					try {
@@ -543,8 +596,8 @@ public enum DbAdapterFactory {
 			for (Entry<String, DatabaseColumn> entry : this.databaseTable
 					.getAllColumn().entrySet()) {
 				/*
-				 * Ha AutoIncrement, akkor nem teszi be az oszlopot.
-				 * TODO AutoIncrement ellenőrzés: ezt még gondold át!
+				 * Ha AutoIncrement, akkor nem teszi be az oszlopot. TODO
+				 * AutoIncrement ellenőrzés: ezt még gondold át!
 				 */
 				if (!entry.getValue().isAutoIncrement()) {
 					Method getter = entry.getValue().getGetter();

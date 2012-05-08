@@ -193,7 +193,7 @@ public enum DbAdapterFactory {
 				if (newId != -1) {
 					Method setter = this.databaseTable.getIdColumn()
 							.getSetter();
-					setter.invoke(setter, newId);
+					setter.invoke(entity, newId);
 					// entity.setId(newId);
 				} else {
 					entity = null;
@@ -294,14 +294,14 @@ public enum DbAdapterFactory {
 
 				Method getter = this.databaseTable.getIdColumn().getGetter();
 				Method setter = this.databaseTable.getIdColumn().getSetter();
-				
-				Long id = (Long) getter.invoke(entity, new Object [] {});
-				
+
+				Long id = (Long) getter.invoke(entity, new Object[] {});
+
 				newId = database.update(this.databaseTable.getName(), values,
 						COLUMN_ID + " = " + id, null);
-				
+
 				setter.invoke(entity, newId);
-//				entity.setId(newId);
+				// entity.setId(newId);
 			} catch (SQLException exception) {
 				Log.w(TAG, "update - Exception: ", exception);
 				throw exception;
@@ -334,15 +334,14 @@ public enum DbAdapterFactory {
 			int affectedCount = 0;
 			try {
 				database = getDatabase();
-				
+
 				Method getter = this.databaseTable.getIdColumn().getGetter();
 
-				Long id = (Long) getter.invoke(entity, new Object [] {});
-				
 				if (entity != null) {
+					Long id = (Long) getter.invoke(entity, new Object[] {});
 					affectedCount = database.delete(
-							this.databaseTable.getName(), COLUMN_ID + "= "
-									+ id, null);
+							this.databaseTable.getName(),
+							COLUMN_ID + "= " + id, null);
 				} else {
 					affectedCount = database.delete(
 							this.databaseTable.getName(), "1", null);
@@ -385,7 +384,7 @@ public enum DbAdapterFactory {
 			try {
 				database = getDatabase();
 
-				// Log.d(TAG, "listWithQuery - query: " + query);
+				Log.d(TAG, "listWithQuery - query: " + query);
 				cursor = database.rawQuery(query, null);
 
 				resultList = parseCursorToList(cursor);
@@ -638,6 +637,10 @@ public enum DbAdapterFactory {
 			value = cursor.getLong(cursor.getColumnIndex(columnName));
 		} else if (type == Long.class) {
 			value = cursor.getLong(cursor.getColumnIndex(columnName));
+		} else if (type == float.class) {
+			value = cursor.getFloat(cursor.getColumnIndex(columnName));
+		} else if (type == Float.class) {
+			value = cursor.getFloat(cursor.getColumnIndex(columnName));
 		} else if (type == boolean.class) {
 			value = (cursor.getInt(cursor.getColumnIndex(columnName)) > 0) ? true
 					: false;
@@ -655,6 +658,8 @@ public enum DbAdapterFactory {
 			return (String) object;
 		} else if (object instanceof Long || object.getClass() == long.class) {
 			return ((Long) object).toString();
+		} else if (object instanceof Float || object.getClass() == float.class) {
+			return ((Float) object).toString();
 		} else if (object instanceof Integer || object.getClass() == int.class) {
 			return ((Integer) object).toString();
 		} else if (object instanceof Boolean

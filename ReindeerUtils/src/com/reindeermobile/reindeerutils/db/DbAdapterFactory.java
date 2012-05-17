@@ -174,6 +174,7 @@ public enum DbAdapterFactory {
 					}
 				}
 			}
+			Log.d(TAG, "findById - " + entity);
 			return entity;
 		}
 
@@ -273,13 +274,34 @@ public enum DbAdapterFactory {
 		@Override
 		public int insertList(List<T> entities) {
 			Log.d(TAG, "insertList - START");
+			Method getter = this.databaseTable.getIdColumn().getGetter();
 			int count = 0;
 			for (T entity : entities) {
 				Log.d(TAG, "insertList - persist: " + entity.toString());
-				T savedEntity = insert(entity);
-				Log.d(TAG, "insertList - persisted: " + entity.toString());
-				if (savedEntity != null) {
-					count++;
+				Long id = null;
+				try {
+					id = (Long) getter.invoke(entity, new Object[] {});
+					T existed = null;
+					T savedEntity = null;
+					if (id != null) {
+						existed = findById(id);
+					}
+					if (existed != null) {
+						savedEntity = update(entity);
+						Log.d(TAG, "insertList - updated: " + entity.toString());
+					} else {
+						savedEntity = insert(entity);
+						Log.d(TAG, "insertList - persisted: " + entity.toString());
+					}
+					if (savedEntity != null) {
+						count++;
+					}
+				} catch (IllegalArgumentException exception) {
+					exception.printStackTrace();
+				} catch (IllegalAccessException exception) {
+					exception.printStackTrace();
+				} catch (InvocationTargetException exception) {
+					exception.printStackTrace();
 				}
 			}
 			return count;
@@ -489,18 +511,18 @@ public enum DbAdapterFactory {
 
 		@Override
 		public T parseCursor(T entity, Cursor cursor) {
-			if (entity == null) {
-				try {
-					entity = this.clazz.newInstance();
-				} catch (IllegalAccessException exception) {
-					Log.w(TAG, "parseCursor - IllegalAccessException",
-							exception);
-				} catch (InstantiationException exception) {
-					Log.w(TAG, "parseCursor - InstantiationException",
-							exception);
-				}
-			}
 			if (cursor != null && cursor.moveToFirst()) {
+				if (entity == null) {
+					try {
+						entity = this.clazz.newInstance();
+					} catch (IllegalAccessException exception) {
+						Log.w(TAG, "parseCursor - IllegalAccessException",
+								exception);
+					} catch (InstantiationException exception) {
+						Log.w(TAG, "parseCursor - InstantiationException",
+								exception);
+					}
+				}
 				for (String columnName : cursor.getColumnNames()) {
 					Type columnType = this.databaseTable.getColumn(columnName)
 							.getType();

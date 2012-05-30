@@ -6,5 +6,5 @@
     <uses-sdk
         android:minSdkVersion="4"
         android:targetSdkVersion="7" />
-    <application android:name="reindeer_orm" />
+    <application android:name=".reindeer_orm" />
 </manifest>

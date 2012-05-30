@@ -1,4 +1,4 @@
-package com.reindeermobile.reindeerutils.db;
+package com.reindeermobile.reindeerorm;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

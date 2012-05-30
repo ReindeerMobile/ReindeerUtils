@@ -1,4 +1,4 @@
-package com.reindeermobile.reindeerutils.db;
+package com.reindeermobile.reindeerorm;
 
 import java.util.ArrayList;
 import java.util.List;

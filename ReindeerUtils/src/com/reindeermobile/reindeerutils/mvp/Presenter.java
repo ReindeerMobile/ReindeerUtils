@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.os.Parcelable;
 import android.util.Log;
 
 import java.lang.annotation.ElementType;
@@ -81,15 +80,6 @@ public final class Presenter implements Callback {
 
 	public static final Presenter getInst() {
 		return INSTANCE;
-	}
-
-	/**
-	 * @deprecated Use instead {@link ControllerServices} or
-	 *             {@link ViewServices}!
-	 */
-	@Target({ ElementType.FIELD })
-	@Retention(RetentionPolicy.RUNTIME)
-	public @interface ModelService {
 	}
 
 	@Target({ ElementType.FIELD })
@@ -203,20 +193,6 @@ public final class Presenter implements Callback {
 				null);
 	}
 
-	@Deprecated
-	public void sendViewMessage(String serviceName, int arg1, MessageObject obj)
-			throws ServiceNotRegisteredException {
-		this.sendViewMessage(this.getViewServiceId(serviceName), arg1, 0, obj,
-				null);
-	}
-
-	@Deprecated
-	public void sendViewMessage(String serviceName, MessageObject obj)
-			throws ServiceNotRegisteredException {
-		this.sendViewMessage(this.getViewServiceId(serviceName), 0, 0, obj,
-				null);
-	}
-
 	public void sendViewMessage(String serviceName, Object obj)
 			throws ServiceNotRegisteredException {
 		this.sendViewMessage(this.getViewServiceId(serviceName), 0, 0, obj,
@@ -243,35 +219,6 @@ public final class Presenter implements Callback {
 
 	public void sendViewMessage(int what, MessageObject obj) {
 		this.sendViewMessage(what, 0, 0, obj, null);
-	}
-
-	/**
-	 * View üzenetet küld a {@link MessageObject#getModelName()}-től a
-	 * {@link MessageObject#getSenderView()}-nak.
-	 * 
-	 * <br>
-	 * 1.3: Küldj inkább {@link Parcelable} listát {@link Bundle}-n keresztül.
-	 * Ha lehet ne használd a {@link MessageObject}-et.
-	 * 
-	 * @param what
-	 * @param obj
-	 *            Ha null vagy a sender adattag null, akkor mindenkinek küldi.
-	 * 
-	 */
-	@Deprecated
-	public final void sendViewMessage(int what, int arg1, int arg2,
-			MessageObject obj) {
-		String viewService = this.controllerServiceNameMap.get(what);
-		Log.d(TAG, "sendViewMessage - viewService: " + viewService);
-
-		if (obj.getSenderView() == null) {
-			Log.d(TAG, "sendViewMessage - BROADCAST_MESSAGE");
-		} else {
-			Log.d(TAG, "sendViewMessage - send to concrate view");
-		}
-
-		sendMessageToTarget(this.viewHandlerMap.get(obj.getSenderView()), what,
-				arg1, arg2, obj, null);
 	}
 
 	public final void sendViewMessage(int what, int arg1, int arg2, Object obj,
@@ -311,28 +258,8 @@ public final class Presenter implements Callback {
 				null, bundle);
 	}
 
-	public void sendModelMessage(String serviceName, int arg, MessageObject obj)
-			throws ServiceNotRegisteredException {
-		this.sendModelMessage(this.getControllerServiceId(serviceName), arg, 0,
-				obj, null);
-	}
-
-	public void sendModelMessage(String serviceName, MessageObject obj)
-			throws ServiceNotRegisteredException {
-		this.sendModelMessage(this.getControllerServiceId(serviceName), 0, 0,
-				obj, null);
-	}
-
 	public void sendModelMessage(int what) {
 		this.sendModelMessage(what, 0, 0, null, null);
-	}
-
-	public void sendModelMessage(int what, int arg, MessageObject obj) {
-		this.sendModelMessage(what, arg, 0, obj, null);
-	}
-
-	public void sendModelMessage(int what, MessageObject obj) {
-		this.sendModelMessage(what, 0, 0, obj, null);
 	}
 
 	public final void sendModelMessage(int what, int arg1, int arg2,

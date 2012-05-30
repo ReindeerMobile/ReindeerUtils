@@ -1,4 +1,4 @@
-package com.reindeermobile.reindeerutils.db;
+package com.reindeermobile.reindeerorm;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+@Deprecated
 public class RemoteMappedDatabaseHelper extends MappedDataBaseHelper {
 	public static final String TAG = "RemoteMappedDatabaseHelper";
 

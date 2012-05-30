@@ -1,10 +1,10 @@
-package com.reindeermobile.reindeerutils.db;
+package com.reindeermobile.reindeerorm;
 
-import com.reindeermobile.reindeerutils.db.DbAdapterFactory.AutoIncrement;
-import com.reindeermobile.reindeerutils.db.DbAdapterFactory.Column;
-import com.reindeermobile.reindeerutils.db.DbAdapterFactory.Id;
-import com.reindeermobile.reindeerutils.db.DbAdapterFactory.NotNull;
-import com.reindeermobile.reindeerutils.db.DbAdapterFactory.Table;
+import com.reindeermobile.reindeerorm.DbAdapterFactory.AutoIncrement;
+import com.reindeermobile.reindeerorm.DbAdapterFactory.Column;
+import com.reindeermobile.reindeerorm.DbAdapterFactory.Id;
+import com.reindeermobile.reindeerorm.DbAdapterFactory.NotNull;
+import com.reindeermobile.reindeerorm.DbAdapterFactory.Table;
 
 import android.util.Log;
 

@@ -1,4 +1,4 @@
-package com.reindeermobile.reindeerutils.db;
+package com.reindeermobile.reindeerorm;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;

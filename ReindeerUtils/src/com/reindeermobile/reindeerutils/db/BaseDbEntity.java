@@ -4,7 +4,10 @@ import com.reindeermobile.reindeerutils.db.DbAdapterFactory.Column;
 import com.reindeermobile.reindeerutils.db.DbAdapterFactory.Id;
 import com.reindeermobile.reindeerutils.view.intent.IntentUtils.IntentParam;
 
-public class BaseDbEntity {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class BaseDbEntity implements Parcelable {
 
 	@Id
 	@Column(name = "_id")
@@ -48,6 +51,16 @@ public class BaseDbEntity {
 	@Override
 	public String toString() {
 		return "BaseDbEntity [id=" + this.id + "]";
+	}
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeLong(this.id);
 	}
 
 }

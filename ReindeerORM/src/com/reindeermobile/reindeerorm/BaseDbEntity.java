@@ -1,7 +1,7 @@
 package com.reindeermobile.reindeerorm;
 
-import com.reindeermobile.reindeerorm.DbAdapterFactory.Column;
-import com.reindeermobile.reindeerorm.DbAdapterFactory.Id;
+import com.reindeermobile.reindeerorm.entity.annotations.Column;
+import com.reindeermobile.reindeerorm.entity.annotations.Id;
 import com.reindeermobile.reindeerutils.view.intent.IntentUtils.IntentParam;
 
 import android.os.Parcel;

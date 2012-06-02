@@ -7,6 +7,9 @@ import java.util.List;
 public interface IDatabaseAdapter<T> {
 	T find(T entity);
 
+	T find(long id);
+	
+	@Deprecated
 	T findById(long id);
 
 	T insert(T entity);

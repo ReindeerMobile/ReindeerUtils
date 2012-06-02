@@ -1,4 +1,7 @@
-package com.reindeermobile.reindeerorm;
+package com.reindeermobile.reindeerorm.bootstrep;
+
+import com.reindeermobile.reindeerorm.DatabaseColumn;
+import com.reindeermobile.reindeerorm.DatabaseTable;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -6,6 +9,11 @@ import android.util.Log;
 
 import java.util.Collection;
 
+/**
+ * Az adatbázis inicializálását végzi el a "felmeppelt" intitások alapján.
+ * @author zsdoma
+ *
+ */
 public class MappedDataBaseHelper extends DataBaseHelper {
 	public static final String TAG = "MappedDataBaseHelper";
 
@@ -17,12 +25,22 @@ public class MappedDataBaseHelper extends DataBaseHelper {
 			DatabaseTable databaseTable) {
 		super(context, name, version);
 		this.databaseTable = databaseTable;
+		/*
+		 * Csak, hogy az onCreate/onUpgrade lefusson. Hack a little bit. :P
+		 */
+		SQLiteDatabase database = getWritableDatabase();
+		database.close();
 	}
 
-	MappedDataBaseHelper(Context context, String name, int version,
+	public MappedDataBaseHelper(Context context, String name, int version,
 			Collection<DatabaseTable> databaseTableList) {
 		super(context, name, version);
 		this.databaseTableList = databaseTableList;
+		/*
+		 * Csak, hogy az onCreate/onUpgrade lefusson. Hack a little bit. :P
+		 */
+		SQLiteDatabase database = getWritableDatabase();
+		database.close();
 	}
 
 	@Override
@@ -35,6 +53,7 @@ public class MappedDataBaseHelper extends DataBaseHelper {
 				database.execSQL(generateCreateQuery(databaseTable));
 			}
 		}
+		
 		this.init(database);
 	}
 
@@ -47,7 +66,6 @@ public class MappedDataBaseHelper extends DataBaseHelper {
 
 	@Override
 	protected void init(SQLiteDatabase database) {
-
 		for (int i = 1; i < this.version + 1; i++) {
 			String sqlFile = "insert_v" + i + ".sql";
 			Log.i(TAG, "onUpgrade - insert/update tables: " + sqlFile);

@@ -1,30 +1,32 @@
 package com.reindeermobile.reindeerorm;
 
-import com.reindeermobile.reindeerorm.DbAdapterFactory.AutoIncrement;
-import com.reindeermobile.reindeerorm.DbAdapterFactory.Column;
-import com.reindeermobile.reindeerorm.DbAdapterFactory.Id;
-import com.reindeermobile.reindeerorm.DbAdapterFactory.NotNull;
-import com.reindeermobile.reindeerorm.DbAdapterFactory.Table;
+import com.reindeermobile.reindeerorm.entity.annotations.AutoIncrement;
+import com.reindeermobile.reindeerorm.entity.annotations.Column;
+import com.reindeermobile.reindeerorm.entity.annotations.Id;
+import com.reindeermobile.reindeerorm.entity.annotations.NotNull;
+import com.reindeermobile.reindeerorm.entity.annotations.Table;
+import com.reindeermobile.reindeerorm.exception.EntityMappingException;
 
 import android.util.Log;
 
 import java.lang.annotation.AnnotationFormatError;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
-class DatabaseTable {
+public class DatabaseTable {
 	public static final String TAG = "DatabaseTable";
-	
+
 	public static final String ID_COLUMN_NAME = "_id";
 
 	private String tableName;
 	private DatabaseColumn primaryColumn;
 	private Map<String, DatabaseColumn> columnMap;
 
-	<T> DatabaseTable(Class<T> clazz) {
+	public <T> DatabaseTable(Class<T> clazz) {
 		if (clazz.isAnnotationPresent(Table.class)) {
 			this.tableName = (clazz.getAnnotation(Table.class)).name();
 			if (this.tableName.length() == 0) {
@@ -37,12 +39,31 @@ class DatabaseTable {
 		this.resolveAnnotatedFields(clazz);
 	}
 
+	public <T> Object getEntityFieldValueByColumnName(T entity, String columnName)
+			throws EntityMappingException {
+		Method getter = columnMap.get(columnName).getGetter();
+		Object obj = null;
+		try {
+			obj = getter.invoke(entity, new Object[] {});
+		} catch (IllegalArgumentException exception) {
+			Log.w(TAG, "getValueByColumnName - ", exception);
+			throw new EntityMappingException(exception);
+		} catch (IllegalAccessException exception) {
+			Log.w(TAG, "getValueByColumnName - ", exception);
+			throw new EntityMappingException(exception);
+		} catch (InvocationTargetException exception) {
+			Log.w(TAG, "getValueByColumnName - ", exception);
+			throw new EntityMappingException(exception);
+		}
+		return obj;
+	}
+
 	private <T> void resolveAnnotatedFields(Class<? super T> clazz) {
-//		if (clazz != BaseDbEntity.class) {
+		// if (clazz != BaseDbEntity.class) {
 		if (clazz.getSuperclass() != null) {
 			resolveAnnotatedFields(clazz.getSuperclass());
 		}
-//		}
+		// }
 
 		Field[] fields = clazz.getDeclaredFields();
 		for (int i = 0; i < fields.length; i++) {
@@ -130,7 +151,7 @@ class DatabaseTable {
 	public DatabaseColumn getColumn(String columnName) {
 		return this.columnMap.get(columnName);
 	}
-	
+
 	public DatabaseColumn getIdColumn() {
 		return this.columnMap.get(ID_COLUMN_NAME);
 	}

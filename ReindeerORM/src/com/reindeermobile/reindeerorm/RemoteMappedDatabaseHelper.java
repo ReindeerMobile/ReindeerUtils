@@ -1,5 +1,7 @@
 package com.reindeermobile.reindeerorm;
 
+import com.reindeermobile.reindeerorm.bootstrep.MappedDataBaseHelper;
+
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;

@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-class DatabaseColumn {
+public class DatabaseColumn {
 	private String columnName;
 	private Type type;
 	private Method setter;
@@ -31,7 +31,7 @@ class DatabaseColumn {
 		typeMap.put(Date.class, "INTEGER");
 	}
 
-	DatabaseColumn(String columnName, Type type, Method setter, Method getter) {
+	public DatabaseColumn(String columnName, Type type, Method setter, Method getter) {
 		super();
 		this.columnName = columnName;
 		this.type = type;
@@ -39,7 +39,7 @@ class DatabaseColumn {
 		this.getter = getter;
 	}
 
-	DatabaseColumn(String columnName, Type columnType, Method setter,
+	public DatabaseColumn(String columnName, Type columnType, Method setter,
 			Method getter, boolean notnull, boolean primary, boolean autoIncrement) {
 		this(columnName, columnType, setter, getter);
 		this.notnull = notnull;

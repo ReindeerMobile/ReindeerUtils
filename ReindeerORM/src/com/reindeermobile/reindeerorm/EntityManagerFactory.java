@@ -1,8 +1,5 @@
-package com.reindeermobile.reindeerorm.bootstrep;
+package com.reindeermobile.reindeerorm;
 
-import com.reindeermobile.reindeerorm.DatabaseTable;
-import com.reindeermobile.reindeerorm.entitymanager.EntityManagable;
-import com.reindeermobile.reindeerorm.entitymanager.EntityManager;
 
 import android.content.Context;
 import android.util.Log;
@@ -52,16 +49,6 @@ public enum EntityManagerFactory {
 				EntityManagerFactory.INSTANCE.databaseTableMap.values());
 	}
 
-	/**
-	 * Létrehoz egy EntityManager példányt az megkapott class entity kezelésére.
-	 * 
-	 * @param clazz
-	 *            a kapot entity osztály
-	 * @param context
-	 * @param databaseName
-	 * @param dbVersion
-	 * @return a létrehozott EntityManager példány.
-	 */
 	public static EntityManagable createInstance() {
 		if (EntityManagerFactory.INSTANCE.databaseTableMap == null) {
 			throw new NullPointerException(

@@ -8,7 +8,7 @@ public abstract class AbstractDatabaseHelper extends SQLiteOpenHelper {
 
 	protected static final String DATA_SLASH_DATA_PATH = "/data/data/";
 
-	public AbstractDatabaseHelper(Context context, String name, int version) {
+	AbstractDatabaseHelper(Context context, String name, int version) {
 		super(context, name, null, version);
 	}
 	

@@ -1,4 +1,4 @@
-package com.reindeermobile.reindeerorm.bootstrep;
+package com.reindeermobile.reindeerorm;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,11 +10,10 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import com.reindeermobile.reindeerorm.AbstractDatabaseHelper;
 import com.reindeermobile.reindeerutils.view.StringUtils;
 import com.reindeermobile.reindeerutils.view.ViewUtils;
 
-public class DataBaseHelper extends AbstractDatabaseHelper {
+class DataBaseHelper extends AbstractDatabaseHelper {
 	public static final String TAG = "DataBaseHelper";
 	
 	private String packagePath;

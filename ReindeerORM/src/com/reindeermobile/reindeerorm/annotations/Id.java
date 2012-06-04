@@ -1,6 +1,4 @@
-package com.reindeermobile.reindeerorm.entity.annotations;
-
-import com.reindeermobile.reindeerutils.view.StringUtils;
+package com.reindeermobile.reindeerorm.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,6 +7,5 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD })
-public @interface Column {
-	String name() default StringUtils.EMPTY_STRING;
+public @interface Id {
 }

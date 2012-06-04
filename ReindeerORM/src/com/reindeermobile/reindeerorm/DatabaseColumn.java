@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DatabaseColumn {
+class DatabaseColumn {
 	private String columnName;
 	private Type type;
 	private Method setter;

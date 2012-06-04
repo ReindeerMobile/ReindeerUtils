@@ -1,14 +1,13 @@
 package com.reindeermobile.reindeerorm;
 
-import com.reindeermobile.reindeerorm.entity.annotations.Column;
-import com.reindeermobile.reindeerorm.entity.annotations.Id;
+import com.reindeermobile.reindeerorm.annotations.Column;
+import com.reindeermobile.reindeerorm.annotations.Id;
 import com.reindeermobile.reindeerutils.view.intent.IntentUtils.IntentParam;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
 public class BaseDbEntity implements Parcelable {
-
 	@Id
 	@Column(name = "_id")
 	@IntentParam

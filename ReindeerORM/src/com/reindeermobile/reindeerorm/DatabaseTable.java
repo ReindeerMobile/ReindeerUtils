@@ -1,36 +1,48 @@
 package com.reindeermobile.reindeerorm;
 
-import com.reindeermobile.reindeerorm.entity.annotations.AutoIncrement;
-import com.reindeermobile.reindeerorm.entity.annotations.Column;
-import com.reindeermobile.reindeerorm.entity.annotations.Id;
-import com.reindeermobile.reindeerorm.entity.annotations.NotNull;
-import com.reindeermobile.reindeerorm.entity.annotations.Table;
-import com.reindeermobile.reindeerorm.exception.EntityMappingException;
+import com.reindeermobile.reindeerorm.annotations.AutoIncrement;
+import com.reindeermobile.reindeerorm.annotations.Column;
+import com.reindeermobile.reindeerorm.annotations.Id;
+import com.reindeermobile.reindeerorm.annotations.NativeNamedQueries;
+import com.reindeermobile.reindeerorm.annotations.NativeNamedQuery;
+import com.reindeermobile.reindeerorm.annotations.NotNull;
+import com.reindeermobile.reindeerorm.annotations.Table;
 
 import android.util.Log;
 
 import java.lang.annotation.AnnotationFormatError;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DatabaseTable {
+class DatabaseTable {
 	public static final String TAG = "DatabaseTable";
-
 	public static final String ID_COLUMN_NAME = "_id";
 
 	private String tableName;
 	private DatabaseColumn primaryColumn;
 	private Map<String, DatabaseColumn> columnMap;
+	private Map<String, String> nativeNamedQueriesMap;
 
 	public <T> DatabaseTable(Class<T> clazz) {
 		if (clazz.isAnnotationPresent(Table.class)) {
 			this.tableName = (clazz.getAnnotation(Table.class)).name();
 			if (this.tableName.length() == 0) {
 				this.tableName = clazz.getName();
+			}
+
+			if (clazz.isAnnotationPresent(NativeNamedQueries.class)) {
+				nativeNamedQueriesMap = new HashMap<String, String>();
+				NativeNamedQueries nativeNamedQueries = clazz
+						.getAnnotation(NativeNamedQueries.class);
+				for (NativeNamedQuery nativeNamedQuery : nativeNamedQueries
+						.value()) {
+					this.nativeNamedQueriesMap.put(nativeNamedQuery.name(),
+							nativeNamedQuery.query());
+				}
+
 			}
 		} else {
 			throw new AnnotationFormatError("Table annotation missing!");
@@ -39,31 +51,50 @@ public class DatabaseTable {
 		this.resolveAnnotatedFields(clazz);
 	}
 
-	public <T> Object getEntityFieldValueByColumnName(T entity, String columnName)
-			throws EntityMappingException {
-		Method getter = columnMap.get(columnName).getGetter();
-		Object obj = null;
-		try {
-			obj = getter.invoke(entity, new Object[] {});
-		} catch (IllegalArgumentException exception) {
-			Log.w(TAG, "getValueByColumnName - ", exception);
-			throw new EntityMappingException(exception);
-		} catch (IllegalAccessException exception) {
-			Log.w(TAG, "getValueByColumnName - ", exception);
-			throw new EntityMappingException(exception);
-		} catch (InvocationTargetException exception) {
-			Log.w(TAG, "getValueByColumnName - ", exception);
-			throw new EntityMappingException(exception);
-		}
-		return obj;
+	public String getName() {
+		return this.tableName;
 	}
 
+	public final DatabaseColumn getPrimaryColumn() {
+		return this.primaryColumn;
+	}
+
+	public final void setPrimaryColumn(DatabaseColumn primaryColumn) {
+		this.primaryColumn = primaryColumn;
+	}
+
+	public void addColumn(DatabaseColumn column) {
+		this.columnMap.put(column.getColumnName(), column);
+	}
+
+	public DatabaseColumn getColumn(String columnName) {
+		return this.columnMap.get(columnName);
+	}
+
+	public DatabaseColumn getIdColumn() {
+		return this.columnMap.get(ID_COLUMN_NAME);
+	}
+
+	public Map<String, DatabaseColumn> getAllColumn() {
+		return this.columnMap;
+	}
+
+	public String getNativeQuery(String name) {
+		return this.nativeNamedQueriesMap.get(name);
+	}
+
+	@Override
+	public String toString() {
+		return "DatabaseTable [tableName=" + this.tableName
+				+ ", primaryColumn=" + this.primaryColumn + ", columnMap="
+				+ this.columnMap + "]";
+	}
+
+	// TODO refactor
 	private <T> void resolveAnnotatedFields(Class<? super T> clazz) {
-		// if (clazz != BaseDbEntity.class) {
 		if (clazz.getSuperclass() != null) {
 			resolveAnnotatedFields(clazz.getSuperclass());
 		}
-		// }
 
 		Field[] fields = clazz.getDeclaredFields();
 		for (int i = 0; i < fields.length; i++) {
@@ -124,47 +155,6 @@ public class DatabaseTable {
 			}
 		}
 		Log.i(TAG, "resolveAnnotatedFields - OK - " + clazz);
-	}
-
-	// public DatabaseTable(String tableName) {
-	// super();
-	// this.tableName = tableName;
-	// this.columnMap = new HashMap<String, DatabaseColumn>();
-	// }
-
-	public String getName() {
-		return this.tableName;
-	}
-
-	public final DatabaseColumn getPrimaryColumn() {
-		return this.primaryColumn;
-	}
-
-	public final void setPrimaryColumn(DatabaseColumn primaryColumn) {
-		this.primaryColumn = primaryColumn;
-	}
-
-	public void addColumn(DatabaseColumn column) {
-		this.columnMap.put(column.getColumnName(), column);
-	}
-
-	public DatabaseColumn getColumn(String columnName) {
-		return this.columnMap.get(columnName);
-	}
-
-	public DatabaseColumn getIdColumn() {
-		return this.columnMap.get(ID_COLUMN_NAME);
-	}
-
-	public Map<String, DatabaseColumn> getAllColumn() {
-		return this.columnMap;
-	}
-
-	@Override
-	public String toString() {
-		return "DatabaseTable [tableName=" + this.tableName
-				+ ", primaryColumn=" + this.primaryColumn + ", columnMap="
-				+ this.columnMap + "]";
 	}
 
 }

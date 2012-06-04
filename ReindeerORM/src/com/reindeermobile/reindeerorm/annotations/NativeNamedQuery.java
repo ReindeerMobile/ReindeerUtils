@@ -1,4 +1,4 @@
-package com.reindeermobile.reindeerorm.entity.annotations;
+package com.reindeermobile.reindeerorm.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE })
-public @interface NamedQueries {
-	NamedQuery [] value();
+public @interface NativeNamedQuery {
+	String name();
+	String query();
 }

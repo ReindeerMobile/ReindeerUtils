@@ -1,6 +1,5 @@
 package com.reindeermobile.reindeerorm;
 
-import com.reindeermobile.reindeerorm.bootstrep.DataBaseHelper;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -13,7 +12,7 @@ public class BaseDbAdaptor {
 
 	private DataBaseHelper dataBaseHelper;
 
-	public BaseDbAdaptor(final Context context, final String databaseName,
+	BaseDbAdaptor(final Context context, final String databaseName,
 			int dbVersion) {
 		super();
 		Log.d(TAG, "BaseDbAdaptor - Initialize DB adaptor");

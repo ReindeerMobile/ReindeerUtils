@@ -1,4 +1,4 @@
-package com.reindeermobile.reindeerorm.entity.annotations;
+package com.reindeermobile.reindeerorm.annotations;
 
 import com.reindeermobile.reindeerutils.view.StringUtils;
 

@@ -1,7 +1,5 @@
-package com.reindeermobile.reindeerorm.bootstrep;
+package com.reindeermobile.reindeerorm;
 
-import com.reindeermobile.reindeerorm.DatabaseColumn;
-import com.reindeermobile.reindeerorm.DatabaseTable;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -14,7 +12,7 @@ import java.util.Collection;
  * @author zsdoma
  *
  */
-public class MappedDataBaseHelper extends DataBaseHelper {
+class MappedDataBaseHelper extends DataBaseHelper {
 	public static final String TAG = "MappedDataBaseHelper";
 
 	protected DatabaseTable databaseTable;

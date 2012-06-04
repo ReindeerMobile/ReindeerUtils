@@ -1,11 +1,13 @@
 package com.reindeermobile.reindeerorm;
 
-
 import android.content.Context;
 import android.util.Log;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * EntityManager gyártó singleton.
@@ -18,21 +20,60 @@ public enum EntityManagerFactory {
 
 	public static final String TAG = "EntityManagerFactory";
 
+	private static final String PROPERTY_DATABASE_NAME = "databaseName";
+	private static final String PROPERTY_DATABASE_VERSION = "databaseVersion";
+	private static final String DEFAULT_DATABASE_NAME = "database";
+	private static final int DEFAULT_DATABASE_VERSION = 1;
+
 	private Context context;
 	private String databaseName;
 	private int version;
 
 	private Map<Class<?>, DatabaseTable> databaseTableMap;
 
-	// private boolean firstRun = true;
+	public static void init(Context context, Class<?> classes) {
+		init(context, loadProperties(context), classes);
+	}
 
-	/**
-	 * Inicializálja a gyártó enumot a megadott entity (Table annotációval
-	 * annotált) osztályokkal.
-	 * 
-	 * @param classes
-	 */
-	public void init(Context context, String databaseName, int dbVersion,
+	public static void init(Context context, Properties properties,
+			Class<?>... classes) {
+		// if (!properties.contains(PROPERTY_DATABASE_NAME)
+		// || (properties.getProperty(PROPERTY_DATABASE_NAME) == null)
+		// || properties.getProperty(PROPERTY_DATABASE_NAME).length() == 0) {
+		// properties.setProperty(PROPERTY_DATABASE_NAME,
+		// DEFAULT_DATABASE_NAME);
+		// }
+		//
+		// if (!properties.contains(PROPERTY_DATABASE_VERSION)
+		// || (properties.getProperty(PROPERTY_DATABASE_VERSION) == null)
+		// || properties.getProperty(PROPERTY_DATABASE_VERSION).length() == 0) {
+		// properties.setProperty(PROPERTY_DATABASE_VERSION,
+		// DEFAULT_DATABASE_VERSION + "");
+		// }
+
+		String databaseName = properties.getProperty(PROPERTY_DATABASE_NAME,
+				DEFAULT_DATABASE_NAME);
+		int databaseVersion = Integer.valueOf(properties.getProperty(
+				PROPERTY_DATABASE_VERSION, DEFAULT_DATABASE_VERSION + ""));
+
+		INSTANCE.init(context, databaseName, databaseVersion, classes);
+	}
+
+	public static EntityManagable createInstance() {
+		if (EntityManagerFactory.INSTANCE.databaseTableMap == null) {
+			throw new NullPointerException(
+					"Run the DbAdaptorFactory.init() before create an instance.");
+		}
+		return new EntityManager(EntityManagerFactory.INSTANCE.context,
+				EntityManagerFactory.INSTANCE.databaseName,
+				EntityManagerFactory.INSTANCE.version);
+	}
+
+	public <T> DatabaseTable getDatabaseTable(Class<T> clazz) {
+		return databaseTableMap.get(clazz);
+	}
+
+	private void init(Context context, String databaseName, int dbVersion,
 			Class<?>... classes) {
 		Log.i(TAG, "init - START");
 		this.databaseTableMap = new HashMap<Class<?>, DatabaseTable>();
@@ -44,37 +85,27 @@ public enum EntityManagerFactory {
 		this.databaseName = databaseName;
 		this.version = dbVersion;
 		this.context = context;
-		// EntityManagerFactory.INSTANCE.firstRun = false;
 		new MappedDataBaseHelper(context, databaseName, dbVersion,
 				EntityManagerFactory.INSTANCE.databaseTableMap.values());
 	}
 
-	public static EntityManagable createInstance() {
-		if (EntityManagerFactory.INSTANCE.databaseTableMap == null) {
-			throw new NullPointerException(
-					"Run the DbAdaptorFactory.init() before create an instance.");
+	private static Properties loadProperties(Context context) {
+		Properties properties = new Properties();
+		InputStream inputStream = null;
+		try {
+			inputStream = context.getAssets().open("database.properties");
+			properties.load(inputStream);
+		} catch (IOException exception) {
+			Log.w(TAG, "init - ", exception);
+		} finally {
+			if (inputStream != null) {
+				try {
+					inputStream.close();
+				} catch (IOException exception) {
+					Log.w(TAG, "init - ", exception);
+				}
+			}
 		}
-		/*
-		 * Ha még nem indult el, akkor itt gyakorlatilag példányosítja az
-		 * adatbázist. Az feltérképezett entitások alapján létrehozza a
-		 * táblákat.
-		 */
-		// if (EntityManagerFactory.INSTANCE.firstRun) {
-		// EntityManagerFactory.INSTANCE.firstRun = false;
-		// new MappedDataBaseHelper(context, databaseName, dbVersion,
-		// EntityManagerFactory.INSTANCE.databaseTableMap.values());
-		// }
-
-		/*
-		 * Visszatér a T alapján példányosított EntityManager-el.
-		 */
-		return new EntityManager(EntityManagerFactory.INSTANCE.context,
-				EntityManagerFactory.INSTANCE.databaseName,
-				EntityManagerFactory.INSTANCE.version);
+		return properties;
 	}
-
-	public <T> DatabaseTable getDatabaseTable(Class<T> clazz) {
-		return databaseTableMap.get(clazz);
-	}
-
 }

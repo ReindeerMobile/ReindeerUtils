@@ -11,7 +11,7 @@ public interface EntityManagable {
 
 	<T> T merge(T entity, Class<T> clazz) throws EntityMappingException;
 
-	<T> void remove(T entity, Class<T> clazz);
+	<T> void remove(T entity, Class<T> clazz) throws EntityMappingException;
 
 	<T> Query<T> createNamedNativeQuery(String queryName, Class<T> clazz);
 }

@@ -7,8 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-class EntityManager extends AbstractEntityManager implements
-		EntityManagable {
+class EntityManager extends AbstractEntityManager implements EntityManagable {
 	public static final String TAG = "EntityManager";
 
 	public EntityManager(Context context, String databaseName, int dbVersion) {
@@ -20,7 +19,8 @@ class EntityManager extends AbstractEntityManager implements
 		SQLiteDatabase database = baseDbAdaptor.getDatabase();
 		DatabaseTable databaseTable = EntityManagerFactory.INSTANCE
 				.getDatabaseTable(clazz);
-		DatabaseEntity<T> databaseEntity = new DatabaseEntity<T>(entity, databaseTable);
+		DatabaseEntity<T> databaseEntity = new DatabaseEntity<T>(entity,
+				databaseTable);
 
 		long id = 0;
 		try {
@@ -58,7 +58,8 @@ class EntityManager extends AbstractEntityManager implements
 		SQLiteDatabase database = baseDbAdaptor.getDatabase();
 		DatabaseTable databaseTable = EntityManagerFactory.INSTANCE
 				.getDatabaseTable(clazz);
-		DatabaseEntity<T> databaseEntity = new DatabaseEntity<T>(entity, databaseTable);
+		DatabaseEntity<T> databaseEntity = new DatabaseEntity<T>(entity,
+				databaseTable);
 
 		long id = database.insert(databaseTable.getName(), null,
 				databaseEntity.contentValues());
@@ -67,12 +68,12 @@ class EntityManager extends AbstractEntityManager implements
 		entity = databaseEntity.getEntity();
 	}
 
-	public <T> T merge(T entity, Class<T> clazz)
-			throws EntityMappingException {
+	public <T> T merge(T entity, Class<T> clazz) throws EntityMappingException {
 		SQLiteDatabase database = baseDbAdaptor.getDatabase();
 		DatabaseTable databaseTable = EntityManagerFactory.INSTANCE
 				.getDatabaseTable(clazz);
-		DatabaseEntity<T> databaseEntity = new DatabaseEntity<T>(entity, databaseTable);
+		DatabaseEntity<T> databaseEntity = new DatabaseEntity<T>(entity,
+				databaseTable);
 
 		database.update(databaseTable.getName(),
 				databaseEntity.contentValues(), BaseDbAdaptor.COLUMN_ID
@@ -82,10 +83,18 @@ class EntityManager extends AbstractEntityManager implements
 		return databaseEntity.getEntity();
 	}
 
-	public <T> void remove(T entity, Class<T> clazz) {
-		throw new UnsupportedOperationException();
+	public <T> void remove(T entity, Class<T> clazz)
+			throws EntityMappingException {
+		SQLiteDatabase database = baseDbAdaptor.getDatabase();
+		DatabaseTable databaseTable = EntityManagerFactory.INSTANCE
+				.getDatabaseTable(clazz);
+		DatabaseEntity<T> databaseEntity = new DatabaseEntity<T>(entity,
+				databaseTable);
+		long id = (Long) databaseEntity.getValue(BaseDbAdaptor.COLUMN_ID);
+		database.delete(databaseTable.getName(), "? = ?", new String[] {
+				BaseDbAdaptor.COLUMN_ID, String.valueOf(id) });
 	}
-	
+
 	@Override
 	public <T> Query<T> createNamedNativeQuery(String queryName, Class<T> clazz) {
 		SQLiteDatabase database = baseDbAdaptor.getDatabase();

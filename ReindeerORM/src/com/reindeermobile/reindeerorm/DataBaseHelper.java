@@ -68,6 +68,7 @@ class DataBaseHelper extends AbstractDatabaseHelper {
 		if (this.version > 1) {
 			dbVersion = this.version;
 		}
+		
 		String sqlFile = "create_v" + dbVersion + ".sql";
 		Log.i(TAG, "onCreate - create tables: " + sqlFile);
 		loadSqlFile(database, sqlFile);

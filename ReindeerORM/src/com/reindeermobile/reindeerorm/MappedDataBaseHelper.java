@@ -1,11 +1,16 @@
 package com.reindeermobile.reindeerorm;
 
+import com.reindeermobile.reindeerorm.exception.EntityMappingException;
+
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Az adatbázis inicializálását végzi el a "felmeppelt" intitások alapján.
@@ -42,7 +47,7 @@ class MappedDataBaseHelper extends DataBaseHelper {
 		SQLiteDatabase database = getWritableDatabase();
 		database.close();
 	}
-	
+
 	@Override
 	public void onCreate(SQLiteDatabase database) {
 		Log.d(TAG, "onCreate - START");
@@ -58,7 +63,33 @@ class MappedDataBaseHelper extends DataBaseHelper {
 	public void onUpgrade(SQLiteDatabase database, int oldVersion,
 			int newVersion) {
 		Log.d(TAG, "onUpgrade - START");
-		update(database, oldVersion, newVersion);
+
+		// TODO onUpgrade: fetch exist tables
+		Map<String, DatabaseTable> oldTablesMap = new HashMap<String, DatabaseTable>();
+
+		for (DatabaseTable databaseTable : this.databaseTableList) {
+			try {
+				if (oldTablesMap.containsKey(databaseTable.getName())) {
+					List<String> alterQueries = databaseTable
+							.toAlterQuery(oldTablesMap.get(databaseTable
+									.getName()));
+					for (String alterQuery : alterQueries) {
+						database.rawQuery(alterQuery, null);
+					}
+					oldTablesMap.remove(databaseTable.getName());
+				}
+			} catch (EntityMappingException exception) {
+				Log.e(TAG, "onUpgrade - ", exception);
+			}
+		}
+
+		// TODO drop unnesasery tables
+		for (DatabaseTable databaseTable : oldTablesMap.values()) {
+			database.rawQuery(databaseTable.toDropQuery(), null);
+		}
+		
+		// Load new datas.
+		this.update(database, oldVersion, newVersion);
 	}
 
 	@Override
@@ -79,11 +110,4 @@ class MappedDataBaseHelper extends DataBaseHelper {
 		super.loadSqlFile(database, sqlFile);
 	}
 
-	protected String generateDropQuery(DatabaseTable databaseTable) {
-		Log.d(TAG, "generateDropQuery - START");
-		StringBuilder sb = new StringBuilder("DROP TABLE IF EXISTS "
-				+ databaseTable.getName());
-		Log.d(TAG, "generateDropQuery - query - " + sb.toString());
-		return sb.toString();
-	}
 }

@@ -7,6 +7,7 @@ import com.reindeermobile.reindeerorm.annotations.NativeNamedQueries;
 import com.reindeermobile.reindeerorm.annotations.NativeNamedQuery;
 import com.reindeermobile.reindeerorm.annotations.NotNull;
 import com.reindeermobile.reindeerorm.annotations.Table;
+import com.reindeermobile.reindeerorm.exception.EntityMappingException;
 
 import android.util.Log;
 
@@ -14,7 +15,9 @@ import java.lang.annotation.AnnotationFormatError;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 class DatabaseTable {
@@ -66,6 +69,40 @@ class DatabaseTable {
 		return builder.toString();
 	}
 
+	public List<String> toAlterQuery(DatabaseTable oldDatabaseTable)
+			throws EntityMappingException {
+		List<String> alterQueryStringList = new ArrayList<String>();
+
+		for (DatabaseColumn databaseColumn : getAllColumn().values()) {
+			boolean exists = oldDatabaseTable.hasColumn(databaseColumn
+					.getColumnName());
+			if (!exists) {
+				// TODO toAlterQuery - check column
+				if (!databaseColumn.isPrimary()) {
+					StringBuilder builder = new StringBuilder("ALTER TABLE "
+							+ getName() + " ADD COLUMN ");
+					databaseColumn.toCreateQueryFragment(builder);
+					alterQueryStringList.add(builder.toString());
+				}
+			} else if (exists
+					&& oldDatabaseTable.getColumn(
+							databaseColumn.getColumnName()).getType() == databaseColumn
+							.getType()) {
+				Log.i(TAG, "toAlterQuery - same column type, ignored: "
+						+ databaseColumn.getColumnName());
+			} else {
+				throw new EntityMappingException("Column already exists! "
+						+ databaseColumn.getColumnName());
+			}
+		}
+
+		return alterQueryStringList;
+	}
+	
+	public String toDropQuery() {
+		return "DROP TABLE " + getName();
+	}
+
 	public String getName() {
 		return this.tableName;
 	}
@@ -84,6 +121,10 @@ class DatabaseTable {
 
 	public DatabaseColumn getColumn(String columnName) {
 		return this.columnMap.get(columnName);
+	}
+
+	public boolean hasColumn(String columnName) {
+		return this.columnMap.containsKey(columnName);
 	}
 
 	public DatabaseColumn getIdColumn() {

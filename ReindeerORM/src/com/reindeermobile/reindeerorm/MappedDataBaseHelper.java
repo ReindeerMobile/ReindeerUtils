@@ -42,13 +42,13 @@ class MappedDataBaseHelper extends DataBaseHelper {
 		SQLiteDatabase database = getWritableDatabase();
 		database.close();
 	}
-
+	
 	@Override
 	public void onCreate(SQLiteDatabase database) {
 		Log.d(TAG, "onCreate - START");
 		if (this.databaseTableList != null) {
 			for (DatabaseTable databaseTable : this.databaseTableList) {
-				database.execSQL(generateCreateQuery(databaseTable));
+				database.execSQL(databaseTable.toCreateQuery());
 			}
 		}
 		this.init(database);
@@ -77,45 +77,6 @@ class MappedDataBaseHelper extends DataBaseHelper {
 		String sqlFile = "upgrade.sql";
 		Log.i(TAG, "onUpgrade - upgrade tables: " + sqlFile);
 		super.loadSqlFile(database, sqlFile);
-	}
-
-	protected String generateCreateQuery(DatabaseTable databaseTable) {
-		Log.d(TAG, "generateCreateQuery - START");
-		int columnCount = 0;
-		int maxCount = databaseTable.getAllColumn().size();
-
-		StringBuilder sb = new StringBuilder("CREATE TABLE "
-				+ databaseTable.getName());
-		sb = sb.append("(").append(
-				databaseTable.getPrimaryColumn().getColumnName());
-		sb = sb.append(" ").append(
-				databaseTable.getPrimaryColumn().getTypeString());
-		sb = sb.append(" PRIMARY KEY");
-
-		if (databaseTable.getIdColumn().isAutoIncrement()) {
-			sb = sb.append(" AUTOINCREMENT");
-		}
-
-		if (maxCount > 0) {
-			sb = sb.append(",");
-		}
-
-		for (DatabaseColumn column : databaseTable.getAllColumn().values()) {
-			columnCount++;
-			if (!column.isPrimary()) {
-				sb = sb.append(column.getColumnName()); // name
-				sb = sb.append(" ").append(column.getTypeString()); // type
-				if (column.isNotnull()) {
-					sb = sb.append(" NOT NULL"); // notnull
-				}
-				if (columnCount < maxCount) {
-					sb = sb.append(",");
-				}
-			}
-		}
-		sb = sb.append(")");
-		Log.d(TAG, "generateCreateQuery - query - " + sb.toString());
-		return sb.toString();
 	}
 
 	protected String generateDropQuery(DatabaseTable databaseTable) {

@@ -7,6 +7,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 class DatabaseColumn {
+	private static final String STRING_NOT_NULL = "NOT NULL";
+
+	public static final String TAG = "DatabaseColumn";
+	
+	private static final String STRING_AUTOINCREMENT = "AUTOINCREMENT";
+	private static final String STRING_PRIMARY_KEY = "PRIMARY KEY";
+	
 	private String columnName;
 	private Type type;
 	private Method setter;
@@ -26,6 +33,8 @@ class DatabaseColumn {
 		typeMap.put(double.class, "REAL");
 		typeMap.put(Long.class, "INTEGER");
 		typeMap.put(long.class, "INTEGER");
+		typeMap.put(Float.class, "REAL");
+		typeMap.put(float.class, "REAL");
 		typeMap.put(Boolean.class, "INTEGER");
 		typeMap.put(boolean.class, "INTEGER");
 		typeMap.put(Date.class, "INTEGER");
@@ -45,6 +54,21 @@ class DatabaseColumn {
 		this.notnull = notnull;
 		this.primary = primary;
 		this.autoIncrement = autoIncrement;
+	}
+	
+	public StringBuilder toCreateQueryFragment(StringBuilder builder) {
+		builder = builder.append(getColumnName());
+		builder = builder.append(" " + getTypeString());
+		if (isPrimary()) {
+			builder = builder.append(" " + STRING_PRIMARY_KEY);
+		}
+		if (isAutoIncrement()) {
+			builder = builder.append(" " + STRING_AUTOINCREMENT);
+		}
+		if (isNotnull()) {
+			builder = builder.append(" " + STRING_NOT_NULL);
+		}
+		return builder;
 	}
 
 	public final String getColumnName() {

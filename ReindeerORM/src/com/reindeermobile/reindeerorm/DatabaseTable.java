@@ -22,7 +22,7 @@ class DatabaseTable {
 	public static final String ID_COLUMN_NAME = "_id";
 
 	private String tableName;
-	private DatabaseColumn primaryColumn;
+	private String primaryColumnName;
 	private Map<String, DatabaseColumn> columnMap;
 	private Map<String, String> nativeNamedQueriesMap;
 
@@ -33,22 +33,37 @@ class DatabaseTable {
 				this.tableName = clazz.getName();
 			}
 
-			if (clazz.isAnnotationPresent(NativeNamedQueries.class)) {
-				nativeNamedQueriesMap = new HashMap<String, String>();
-				NativeNamedQueries nativeNamedQueries = clazz
-						.getAnnotation(NativeNamedQueries.class);
-				for (NativeNamedQuery nativeNamedQuery : nativeNamedQueries
-						.value()) {
-					this.nativeNamedQueriesMap.put(nativeNamedQuery.name(),
-							nativeNamedQuery.query());
-				}
-
-			}
+			this.nativeNamedQueriesMap = resolvNativeNamedQueries(clazz);
 		} else {
 			throw new AnnotationFormatError("Table annotation missing!");
 		}
-		this.columnMap = new HashMap<String, DatabaseColumn>();
-		this.resolveAnnotatedFields(clazz);
+		this.columnMap = this.resolveAnnotatedFields(clazz);
+	}
+
+	public String toCreateQuery() {
+		int columnCount = 0;
+		int maxCount = getAllColumn().size();
+
+		StringBuilder builder = new StringBuilder("CREATE TABLE " + getName());
+		builder = builder.append("(");
+
+		getPrimaryColumn().toCreateQueryFragment(builder);
+		if (maxCount > 0) {
+			builder = builder.append(",");
+		}
+
+		for (DatabaseColumn column : getAllColumn().values()) {
+			columnCount++;
+			if (!column.isPrimary()) {
+				column.toCreateQueryFragment(builder);
+				if (columnCount < maxCount) {
+					builder = builder.append(",");
+				}
+			}
+		}
+
+		builder = builder.append(")");
+		return builder.toString();
 	}
 
 	public String getName() {
@@ -56,11 +71,11 @@ class DatabaseTable {
 	}
 
 	public final DatabaseColumn getPrimaryColumn() {
-		return this.primaryColumn;
+		return this.getColumn(this.primaryColumnName);
 	}
 
 	public final void setPrimaryColumn(DatabaseColumn primaryColumn) {
-		this.primaryColumn = primaryColumn;
+		this.primaryColumnName = primaryColumn.getColumnName();
 	}
 
 	public void addColumn(DatabaseColumn column) {
@@ -86,12 +101,27 @@ class DatabaseTable {
 	@Override
 	public String toString() {
 		return "DatabaseTable [tableName=" + this.tableName
-				+ ", primaryColumn=" + this.primaryColumn + ", columnMap="
-				+ this.columnMap + "]";
+				+ ", primaryColumnName=" + this.primaryColumnName
+				+ ", columnMap=" + this.columnMap + "]";
+	}
+
+	private <T> Map<String, String> resolvNativeNamedQueries(Class<T> clazz) {
+		Map<String, String> nativeNamedQueriesMap = new HashMap<String, String>();
+		if (clazz.isAnnotationPresent(NativeNamedQueries.class)) {
+			NativeNamedQueries nativeNamedQueries = clazz
+					.getAnnotation(NativeNamedQueries.class);
+			for (NativeNamedQuery nativeNamedQuery : nativeNamedQueries.value()) {
+				nativeNamedQueriesMap.put(nativeNamedQuery.name(),
+						nativeNamedQuery.query());
+			}
+		}
+		return nativeNamedQueriesMap;
 	}
 
 	// TODO refactor
-	private <T> void resolveAnnotatedFields(Class<? super T> clazz) {
+	private <T> Map<String, DatabaseColumn> resolveAnnotatedFields(
+			Class<? super T> clazz) {
+		Map<String, DatabaseColumn> columnMap = new HashMap<String, DatabaseColumn>();
 		if (clazz.getSuperclass() != null) {
 			resolveAnnotatedFields(clazz.getSuperclass());
 		}
@@ -107,8 +137,6 @@ class DatabaseTable {
 				if (columnName.length() == 0) {
 					columnName = field.getName();
 				}
-				// Log.d(TAG, "resolveAnnotatedFields - columnName: "
-				// + columnName);
 
 				String methodNamePostfix = field.getName().substring(0, 1)
 						.toUpperCase()
@@ -118,15 +146,6 @@ class DatabaseTable {
 						+ methodNamePostfix : "is" + methodNamePostfix;
 				String setterMethodName = "set" + methodNamePostfix;
 
-				// Log.d(TAG, "resolveAnnotatedFields - : " +
-				// getterMethodName
-				// + "," + setterMethodName);
-				//
-				// Log.d(TAG,
-				// "resolveAnnotatedFields - clazz: "
-				// + clazz.getName());
-				// Log.d(TAG, "resolveAnnotatedFields - columnType: "
-				// + columnType);
 				try {
 					Method setter = clazz.getMethod(setterMethodName,
 							field.getType());
@@ -143,10 +162,9 @@ class DatabaseTable {
 					if (field.isAnnotationPresent(Id.class)) {
 						this.setPrimaryColumn(databaseColumn);
 					}
-					this.addColumn(databaseColumn);
 
-					// Log.d(TAG, "resolveAnnotatedFields - databaseColumn: "
-					// + databaseColumn);
+					columnMap.put(databaseColumn.getColumnName(),
+							databaseColumn);
 				} catch (SecurityException exception) {
 					exception.printStackTrace();
 				} catch (NoSuchMethodException exception) {
@@ -155,6 +173,7 @@ class DatabaseTable {
 			}
 		}
 		Log.i(TAG, "resolveAnnotatedFields - OK - " + clazz);
+		return columnMap;
 	}
 
 }

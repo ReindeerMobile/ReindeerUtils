@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 class DatabaseColumn {
-	private static final String STRING_NOT_NULL = "NOT NULL";
-
 	public static final String TAG = "DatabaseColumn";
+
+	private static final String STRING_NOT_NULL = "NOT NULL";
 
 	private static final String STRING_AUTOINCREMENT = "AUTOINCREMENT";
 	private static final String STRING_PRIMARY_KEY = "PRIMARY KEY";
@@ -76,6 +76,7 @@ class DatabaseColumn {
 		if (isNotnull()) {
 			builder = builder.append(" " + STRING_NOT_NULL);
 		}
+//		Log.d(TAG, "toCreateQueryFragment - " + builder.toString());
 		return builder;
 	}
 

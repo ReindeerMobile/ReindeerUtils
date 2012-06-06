@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 class DatabaseTable {
 	public static final String TAG = "DatabaseTable";
@@ -45,7 +46,7 @@ class DatabaseTable {
 
 	public DatabaseTable(String tableName) {
 		this.tableName = tableName;
-		this.columnMap = new HashMap<String, DatabaseColumn>();
+		this.columnMap = new TreeMap<String, DatabaseColumn>();
 	}
 
 	public String toCreateQuery() {
@@ -78,7 +79,7 @@ class DatabaseTable {
 			throws EntityMappingException {
 		List<String> alterQueryStringList = new ArrayList<String>();
 
-		Log.d(TAG, "toAlterQueries - " + oldDatabaseTable.toString());
+//		Log.d(TAG, "toAlterQueries - " + oldDatabaseTable.toString());
 
 		for (DatabaseColumn databaseColumn : getAllColumn().values()) {
 			boolean exists = oldDatabaseTable.hasColumn(databaseColumn
@@ -150,7 +151,8 @@ class DatabaseTable {
 	public String toString() {
 		return "DatabaseTable [tableName=" + this.tableName
 				+ ", primaryColumnName=" + this.primaryColumnName
-				+ ", columnMap=" + this.columnMap + "]";
+				+ ", columnMap=" + this.columnMap + ", nativeNamedQueriesMap="
+				+ this.nativeNamedQueriesMap + "]";
 	}
 
 	private <T> Map<String, String> resolvNativeNamedQueries(Class<T> clazz) {
@@ -169,7 +171,7 @@ class DatabaseTable {
 	// TODO refactor
 	private <T> Map<String, DatabaseColumn> resolveAnnotatedFields(
 			Class<? super T> clazz) {
-		Map<String, DatabaseColumn> columnMap = new HashMap<String, DatabaseColumn>();
+		Map<String, DatabaseColumn> columnMap = new TreeMap<String, DatabaseColumn>();
 		if (clazz.getSuperclass() != null) {
 			resolveAnnotatedFields(clazz.getSuperclass());
 		}

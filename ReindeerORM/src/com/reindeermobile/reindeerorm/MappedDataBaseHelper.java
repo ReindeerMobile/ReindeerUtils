@@ -62,7 +62,7 @@ class MappedDataBaseHelper extends DataBaseHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase database) {
-		Log.d(TAG, "onCreate - START");
+//		Log.d(TAG, "onCreate - START");
 		if (this.databaseTableList != null) {
 			for (DatabaseTable databaseTable : this.databaseTableList) {
 				database.execSQL(databaseTable.toCreateQuery());
@@ -74,7 +74,7 @@ class MappedDataBaseHelper extends DataBaseHelper {
 	@Override
 	public void onUpgrade(SQLiteDatabase database, int oldVersion,
 			int newVersion) {
-		Log.d(TAG, "onUpgrade - START");
+//		Log.d(TAG, "onUpgrade - START");
 
 		Map<String, DatabaseTable> oldTablesMap = this
 				.loadExistsTables(database);
@@ -86,9 +86,8 @@ class MappedDataBaseHelper extends DataBaseHelper {
 							.toAlterQueries(oldTablesMap.get(databaseTable
 									.getName()));
 					for (String alterQuery : alterQueries) {
-						Log.d(TAG, "onUpgrade - alterQuery: " + alterQuery);
+//						Log.d(TAG, "onUpgrade - alterQuery: " + alterQuery);
 						database.execSQL(alterQuery);
-//						database.rawQuery(alterQuery, null);
 					}
 					oldTablesMap.remove(databaseTable.getName());
 				}
@@ -179,10 +178,10 @@ class MappedDataBaseHelper extends DataBaseHelper {
 					String typeName = cursor.getString(2);
 					// Ha kulcsmező, akkor nem szedi fel.
 					int key = cursor.getInt(5);
-					Log.d(TAG,
-							"loadTableInfo - "
-									+ String.format("%s %s %d", columnName,
-											typeName, key));
+//					Log.d(TAG,
+//							"loadTableInfo - "
+//									+ String.format("%s %s %d", columnName,
+//											typeName, key));
 					if (columnName != null && typeName != null && key == 0) {
 						databaseTable.addColumn(new DatabaseColumn(columnName,
 								typeName));

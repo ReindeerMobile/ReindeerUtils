@@ -3,14 +3,19 @@ package com.reindeermobile.reindeerorm;
 import com.reindeermobile.reindeerorm.exception.EntityMappingException;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Az adatbázis inicializálását végzi el a "felmeppelt" intitások alapján.
@@ -21,8 +26,16 @@ import java.util.Map;
 class MappedDataBaseHelper extends DataBaseHelper {
 	public static final String TAG = "MappedDataBaseHelper";
 
+	private static final Set<String> IGNORED_TABLES;
+
 	protected Collection<DatabaseTable> databaseTableList;
 	protected boolean debugMode = true;
+
+	static {
+		IGNORED_TABLES = new HashSet<String>();
+		IGNORED_TABLES.add("android_metadata");
+		IGNORED_TABLES.add("sqlite_sequence");
+	}
 
 	public MappedDataBaseHelper(Context context, String name, int version,
 			DatabaseTable databaseTable) {
@@ -44,8 +57,7 @@ class MappedDataBaseHelper extends DataBaseHelper {
 		/*
 		 * Csak, hogy az onCreate/onUpgrade lefusson. Hack a little bit. :P
 		 */
-		SQLiteDatabase database = getWritableDatabase();
-		database.close();
+		getWritableDatabase().close();
 	}
 
 	@Override
@@ -64,17 +76,19 @@ class MappedDataBaseHelper extends DataBaseHelper {
 			int newVersion) {
 		Log.d(TAG, "onUpgrade - START");
 
-		// TODO onUpgrade: fetch exist tables
-		Map<String, DatabaseTable> oldTablesMap = new HashMap<String, DatabaseTable>();
+		Map<String, DatabaseTable> oldTablesMap = this
+				.loadExistsTables(database);
 
 		for (DatabaseTable databaseTable : this.databaseTableList) {
 			try {
 				if (oldTablesMap.containsKey(databaseTable.getName())) {
 					List<String> alterQueries = databaseTable
-							.toAlterQuery(oldTablesMap.get(databaseTable
+							.toAlterQueries(oldTablesMap.get(databaseTable
 									.getName()));
 					for (String alterQuery : alterQueries) {
-						database.rawQuery(alterQuery, null);
+						Log.d(TAG, "onUpgrade - alterQuery: " + alterQuery);
+						database.execSQL(alterQuery);
+//						database.rawQuery(alterQuery, null);
 					}
 					oldTablesMap.remove(databaseTable.getName());
 				}
@@ -83,11 +97,11 @@ class MappedDataBaseHelper extends DataBaseHelper {
 			}
 		}
 
-		// TODO drop unnesasery tables
+		// drop unnesasery tables
 		for (DatabaseTable databaseTable : oldTablesMap.values()) {
 			database.rawQuery(databaseTable.toDropQuery(), null);
 		}
-		
+
 		// Load new datas.
 		this.update(database, oldVersion, newVersion);
 	}
@@ -108,6 +122,86 @@ class MappedDataBaseHelper extends DataBaseHelper {
 		String sqlFile = "upgrade.sql";
 		Log.i(TAG, "onUpgrade - upgrade tables: " + sqlFile);
 		super.loadSqlFile(database, sqlFile);
+	}
+
+	private Map<String, DatabaseTable> loadExistsTables(SQLiteDatabase database) {
+		List<String> tableNameList = new LinkedList<String>();
+		Map<String, DatabaseTable> existTableMap = new HashMap<String, DatabaseTable>();
+		String query = "SELECT name FROM sqlite_master";
+		Cursor cursor = null;
+
+		try {
+			cursor = database.rawQuery(query, null);
+			if (cursor.moveToFirst()) {
+				do {
+					String tableName = cursor.getString(cursor
+							.getColumnIndex("name"));
+					if (tableName != null
+							&& !IGNORED_TABLES.contains(tableName)) {
+						tableNameList.add(tableName);
+					}
+				} while (cursor.moveToNext());
+			}
+		} catch (SQLException exception) {
+			Log.w(TAG, "loadExistsTables - ", exception);
+		} finally {
+			if (cursor != null) {
+				try {
+					cursor.close();
+				} catch (Exception exception) {
+					Log.w(TAG, "loadExistsTables - ", exception);
+				}
+			}
+		}
+
+		for (String tableName : tableNameList) {
+			DatabaseTable databaseTable = this.loadTableInfo(database,
+					tableName);
+			if (databaseTable != null) {
+				existTableMap.put(databaseTable.getName(), databaseTable);
+			}
+		}
+
+		return existTableMap;
+	}
+
+	private DatabaseTable loadTableInfo(SQLiteDatabase database,
+			String tableName) {
+		DatabaseTable databaseTable = new DatabaseTable(tableName);
+		String query = "pragma table_info(" + tableName + ")";
+		Cursor cursor = null;
+
+		try {
+			cursor = database.rawQuery(query, null);
+			if (cursor.moveToFirst()) {
+				do {
+					String columnName = cursor.getString(1);
+					String typeName = cursor.getString(2);
+					// Ha kulcsmező, akkor nem szedi fel.
+					int key = cursor.getInt(5);
+					Log.d(TAG,
+							"loadTableInfo - "
+									+ String.format("%s %s %d", columnName,
+											typeName, key));
+					if (columnName != null && typeName != null && key == 0) {
+						databaseTable.addColumn(new DatabaseColumn(columnName,
+								typeName));
+					}
+				} while (cursor.moveToNext());
+			}
+		} catch (SQLException exception) {
+			Log.w(TAG, "loadTableInfo - ", exception);
+		} finally {
+			try {
+				if (cursor != null) {
+					cursor.close();
+				}
+			} catch (Exception exception) {
+				Log.w(TAG, "loadTableInfo - ", exception);
+			}
+		}
+
+		return databaseTable;
 	}
 
 }

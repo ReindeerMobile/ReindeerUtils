@@ -43,6 +43,11 @@ class DatabaseTable {
 		this.columnMap = this.resolveAnnotatedFields(clazz);
 	}
 
+	public DatabaseTable(String tableName) {
+		this.tableName = tableName;
+		this.columnMap = new HashMap<String, DatabaseColumn>();
+	}
+
 	public String toCreateQuery() {
 		int columnCount = 0;
 		int maxCount = getAllColumn().size();
@@ -69,9 +74,11 @@ class DatabaseTable {
 		return builder.toString();
 	}
 
-	public List<String> toAlterQuery(DatabaseTable oldDatabaseTable)
+	public List<String> toAlterQueries(DatabaseTable oldDatabaseTable)
 			throws EntityMappingException {
 		List<String> alterQueryStringList = new ArrayList<String>();
+
+		Log.d(TAG, "toAlterQueries - " + oldDatabaseTable.toString());
 
 		for (DatabaseColumn databaseColumn : getAllColumn().values()) {
 			boolean exists = oldDatabaseTable.hasColumn(databaseColumn
@@ -85,10 +92,10 @@ class DatabaseTable {
 					alterQueryStringList.add(builder.toString());
 				}
 			} else if (exists
-					&& oldDatabaseTable.getColumn(
-							databaseColumn.getColumnName()).getType() == databaseColumn
-							.getType()) {
-				Log.i(TAG, "toAlterQuery - same column type, ignored: "
+					&& oldDatabaseTable
+							.getColumn(databaseColumn.getColumnName())
+							.getTypeName().equals(databaseColumn.getTypeName())) {
+				Log.i(TAG, "toAlterQueries - same column type, ignored: "
 						+ databaseColumn.getColumnName());
 			} else {
 				throw new EntityMappingException("Column already exists! "
@@ -98,7 +105,7 @@ class DatabaseTable {
 
 		return alterQueryStringList;
 	}
-	
+
 	public String toDropQuery() {
 		return "DROP TABLE " + getName();
 	}

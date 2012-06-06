@@ -10,11 +10,12 @@ class DatabaseColumn {
 	private static final String STRING_NOT_NULL = "NOT NULL";
 
 	public static final String TAG = "DatabaseColumn";
-	
+
 	private static final String STRING_AUTOINCREMENT = "AUTOINCREMENT";
 	private static final String STRING_PRIMARY_KEY = "PRIMARY KEY";
-	
+
 	private String columnName;
+	private String typeName;
 	private Type type;
 	private Method setter;
 	private Method getter;
@@ -22,7 +23,7 @@ class DatabaseColumn {
 	private boolean primary;
 	private boolean autoIncrement;
 
-	private static Map<Type, String> typeMap;
+	public static Map<Type, String> typeMap;
 
 	static {
 		typeMap = new HashMap<Type, String>();
@@ -40,22 +41,29 @@ class DatabaseColumn {
 		typeMap.put(Date.class, "INTEGER");
 	}
 
-	public DatabaseColumn(String columnName, Type type, Method setter, Method getter) {
+	public DatabaseColumn(String columnName, String typeName) {
 		super();
 		this.columnName = columnName;
+		this.typeName = typeName;
+	}
+
+	public DatabaseColumn(String columnName, Type type, Method setter,
+			Method getter) {
+		this(columnName, typeMap.get(type));
 		this.type = type;
 		this.setter = setter;
 		this.getter = getter;
 	}
 
 	public DatabaseColumn(String columnName, Type columnType, Method setter,
-			Method getter, boolean notnull, boolean primary, boolean autoIncrement) {
+			Method getter, boolean notnull, boolean primary,
+			boolean autoIncrement) {
 		this(columnName, columnType, setter, getter);
 		this.notnull = notnull;
 		this.primary = primary;
 		this.autoIncrement = autoIncrement;
 	}
-	
+
 	public StringBuilder toCreateQueryFragment(StringBuilder builder) {
 		builder = builder.append(getColumnName());
 		builder = builder.append(" " + getTypeString());
@@ -113,6 +121,14 @@ class DatabaseColumn {
 
 	public void setAutoIncrement(boolean autoIncrement) {
 		this.autoIncrement = autoIncrement;
+	}
+
+	public String getTypeName() {
+		return typeName;
+	}
+
+	public void setTypeName(String typeName) {
+		this.typeName = typeName;
 	}
 
 	@Override

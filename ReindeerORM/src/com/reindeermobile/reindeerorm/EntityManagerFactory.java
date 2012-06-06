@@ -22,8 +22,11 @@ public enum EntityManagerFactory {
 
 	private static final String PROPERTY_DATABASE_NAME = "databaseName";
 	private static final String PROPERTY_DATABASE_VERSION = "databaseVersion";
+	private static final String PROPERTY_TABLE_NAME_PREFIX = "tableNamePrefix";
 	private static final String DEFAULT_DATABASE_NAME = "database";
 	private static final int DEFAULT_DATABASE_VERSION = 1;
+
+	public static String TABLE_NAME_PREFIX = "";
 
 	private Context context;
 	private String databaseName;
@@ -55,6 +58,8 @@ public enum EntityManagerFactory {
 				DEFAULT_DATABASE_NAME);
 		int databaseVersion = Integer.valueOf(properties.getProperty(
 				PROPERTY_DATABASE_VERSION, DEFAULT_DATABASE_VERSION + ""));
+		TABLE_NAME_PREFIX = properties.getProperty(PROPERTY_TABLE_NAME_PREFIX,
+				TABLE_NAME_PREFIX);
 
 		INSTANCE.init(context, databaseName, databaseVersion, classes);
 	}

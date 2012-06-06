@@ -24,14 +24,14 @@ class DatabaseTable {
 	public static final String TAG = "DatabaseTable";
 	public static final String ID_COLUMN_NAME = "_id";
 
-	private String tableName;
+	private String tableName = EntityManagerFactory.TABLE_NAME_PREFIX;
 	private String primaryColumnName;
 	private Map<String, DatabaseColumn> columnMap;
 	private Map<String, String> nativeNamedQueriesMap;
 
 	public <T> DatabaseTable(Class<T> clazz) {
 		if (clazz.isAnnotationPresent(Table.class)) {
-			this.tableName = (clazz.getAnnotation(Table.class)).name();
+			this.tableName += (clazz.getAnnotation(Table.class)).name();
 			if (this.tableName.length() == 0) {
 				this.tableName = clazz.getName();
 			}

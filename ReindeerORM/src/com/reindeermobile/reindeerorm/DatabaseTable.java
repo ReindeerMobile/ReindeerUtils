@@ -7,6 +7,7 @@ import com.reindeermobile.reindeerorm.annotations.NativeNamedQueries;
 import com.reindeermobile.reindeerorm.annotations.NativeNamedQuery;
 import com.reindeermobile.reindeerorm.annotations.NotNull;
 import com.reindeermobile.reindeerorm.annotations.Table;
+import com.reindeermobile.reindeerorm.annotations.Unique;
 import com.reindeermobile.reindeerorm.exception.EntityMappingException;
 
 import android.util.Log;
@@ -79,7 +80,7 @@ class DatabaseTable {
 			throws EntityMappingException {
 		List<String> alterQueryStringList = new ArrayList<String>();
 
-//		Log.d(TAG, "toAlterQueries - " + oldDatabaseTable.toString());
+		// Log.d(TAG, "toAlterQueries - " + oldDatabaseTable.toString());
 
 		for (DatabaseColumn databaseColumn : getAllColumn().values()) {
 			boolean exists = oldDatabaseTable.hasColumn(databaseColumn
@@ -206,7 +207,8 @@ class DatabaseTable {
 							columnName, columnType, setter, getter,
 							field.isAnnotationPresent(NotNull.class),
 							field.isAnnotationPresent(Id.class),
-							field.isAnnotationPresent(AutoIncrement.class));
+							field.isAnnotationPresent(AutoIncrement.class),
+							field.isAnnotationPresent(Unique.class));
 
 					// check primary key annotation
 					if (field.isAnnotationPresent(Id.class)) {

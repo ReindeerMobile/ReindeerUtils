@@ -13,6 +13,7 @@ class DatabaseColumn {
 
 	private static final String STRING_AUTOINCREMENT = "AUTOINCREMENT";
 	private static final String STRING_PRIMARY_KEY = "PRIMARY KEY";
+	private static final String STRING_UNIQUE = "UNIQUE";
 
 	private String columnName;
 	private String typeName;
@@ -22,6 +23,7 @@ class DatabaseColumn {
 	private boolean notnull;
 	private boolean primary;
 	private boolean autoIncrement;
+	private boolean unique;
 
 	public static Map<Type, String> typeMap;
 
@@ -57,11 +59,12 @@ class DatabaseColumn {
 
 	public DatabaseColumn(String columnName, Type columnType, Method setter,
 			Method getter, boolean notnull, boolean primary,
-			boolean autoIncrement) {
+			boolean autoIncrement, boolean unique) {
 		this(columnName, columnType, setter, getter);
 		this.notnull = notnull;
 		this.primary = primary;
 		this.autoIncrement = autoIncrement;
+		this.unique = unique;
 	}
 
 	public StringBuilder toCreateQueryFragment(StringBuilder builder) {
@@ -75,6 +78,9 @@ class DatabaseColumn {
 		}
 		if (isNotnull()) {
 			builder = builder.append(" " + STRING_NOT_NULL);
+		}
+		if (isUnique()) {
+			builder = builder.append(" " + STRING_UNIQUE);
 		}
 //		Log.d(TAG, "toCreateQueryFragment - " + builder.toString());
 		return builder;
@@ -122,6 +128,14 @@ class DatabaseColumn {
 
 	public void setAutoIncrement(boolean autoIncrement) {
 		this.autoIncrement = autoIncrement;
+	}
+
+	public boolean isUnique() {
+		return unique;
+	}
+
+	public void setUnique(boolean unique) {
+		this.unique = unique;
 	}
 
 	public String getTypeName() {

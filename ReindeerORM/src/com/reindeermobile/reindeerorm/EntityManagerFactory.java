@@ -34,7 +34,7 @@ public enum EntityManagerFactory {
 
 	private Map<Class<?>, DatabaseTable> databaseTableMap;
 
-	public static void init(Context context, Class<?> classes) {
+	public static void init(Context context, Class<?>... classes) {
 		init(context, loadProperties(context), classes);
 	}
 
